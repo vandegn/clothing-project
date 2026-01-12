@@ -1,30 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ColorPalette, Product, Gender } from "@/lib/types";
+import { ColorPalette, Gender } from "@/lib/types";
 import { getAmazonSearchUrl } from "@/lib/api";
-import ClothingCard from "./ClothingCard";
-import { getMockProducts } from "@/lib/mockProducts";
 
 interface ClothingRecommendationsProps {
   palette: ColorPalette[];
   gender: Gender;
 }
 
+interface ColorProduct {
+  colorName: string;
+  image: string;
+  url: string;
+  title: string;
+}
+
 export default function ClothingRecommendations({ palette, gender }: ClothingRecommendationsProps) {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [colorProducts, setColorProducts] = useState<ColorProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<"all" | "tops" | "bottoms">("all");
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "tops" | "bottoms">("tops");
 
   useEffect(() => {
-    // Use mock products for now
-    // In production, this would call the Axesso API
-    const fetchProducts = async () => {
+    const fetchColorProducts = async () => {
       setLoading(true);
       try {
-        // Get mock products based on palette colors and gender
-        const mockProducts = getMockProducts(palette, gender);
-        setProducts(mockProducts);
+        const genderParam = gender === "male" ? "mens" : gender === "female" ? "womens" : "";
+        const categoryParam = selectedCategory === "all" ? "" : selectedCategory;
+
+        // Fetch first product for each color in palette
+        const results = await Promise.all(
+          palette.slice(0, 6).map(async (color) => {
+            try {
+              const response = await fetch(
+                `/api/products?color=${encodeURIComponent(color.name)}&category=${encodeURIComponent(categoryParam)}&gender=${encodeURIComponent(genderParam)}`
+              );
+
+              if (!response.ok) {
+                throw new Error("Failed to fetch");
+              }
+
+              const products = await response.json();
+
+              // Get the first product with an image
+              if (Array.isArray(products) && products.length > 0) {
+                const product = products[0];
+                return {
+                  colorName: color.name,
+                  image: product.image,
+                  url: product.url,
+                  title: product.title,
+                };
+              }
+
+              return {
+                colorName: color.name,
+                image: "",
+                url: getAmazonSearchUrl(color.name, selectedCategory, gender),
+                title: "",
+              };
+            } catch {
+              return {
+                colorName: color.name,
+                image: "",
+                url: getAmazonSearchUrl(color.name, selectedCategory, gender),
+                title: "",
+              };
+            }
+          })
+        );
+
+        setColorProducts(results);
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -32,21 +78,8 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
       }
     };
 
-    fetchProducts();
-  }, [palette, gender]);
-
-  const filteredProducts = selectedCategory === "all"
-    ? products
-    : products.filter(p => {
-        if (selectedCategory === "tops") {
-          return ["shirt", "blouse", "sweater", "top", "jacket"].some(t =>
-            p.title.toLowerCase().includes(t)
-          );
-        }
-        return ["pants", "jeans", "skirt", "shorts", "trousers"].some(t =>
-          p.title.toLowerCase().includes(t)
-        );
-      });
+    fetchColorProducts();
+  }, [palette, gender, selectedCategory]);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
@@ -61,7 +94,7 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
         </div>
 
         <div className="flex gap-2">
-          {(["all", "tops", "bottoms"] as const).map((category) => (
+          {(["tops", "bottoms"] as const).map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
@@ -78,60 +111,55 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="animate-pulse">
               <div className="bg-slate-200 dark:bg-slate-700 aspect-square rounded-lg mb-2" />
-              <div className="bg-slate-200 dark:bg-slate-700 h-4 rounded w-3/4 mb-1" />
-              <div className="bg-slate-200 dark:bg-slate-700 h-4 rounded w-1/2" />
+              <div className="bg-slate-200 dark:bg-slate-700 h-4 rounded w-3/4" />
             </div>
           ))}
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {filteredProducts.slice(0, 8).map((product) => (
-              <ClothingCard key={product.id} product={product} />
-            ))}
-          </div>
-
-          {/* Shop on Amazon Links */}
-          <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
-              Search for more items on Amazon:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {palette.slice(0, 6).map((color, index) => (
-                <a
-                  key={index}
-                  href={getAmazonSearchUrl(color.name, "clothing", gender)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-full text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                >
-                  <span
-                    className="w-3 h-3 rounded-full border border-slate-300 dark:border-slate-500"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                  <span className="text-slate-700 dark:text-slate-300">{color.name}</span>
-                  <svg
-                    className="w-3 h-3 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          {colorProducts.map((product, index) => {
+            const paletteColor = palette[index];
+            return (
+              <a
+                key={index}
+                href={product.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block"
+              >
+                <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 mb-2">
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt={product.title || product.colorName}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </div>
-        </>
+                  ) : (
+                    <div
+                      className="w-full h-full flex items-center justify-center"
+                      style={{ backgroundColor: paletteColor?.hex || "#ccc" }}
+                    >
+                      <span className="text-white text-xs text-center px-2">
+                        No image
+                      </span>
+                    </div>
+                  )}
+                  <div
+                    className="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-white shadow"
+                    style={{ backgroundColor: paletteColor?.hex || "#ccc" }}
+                  />
+                </div>
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {product.colorName}
+                </p>
+              </a>
+            );
+          })}
+        </div>
       )}
     </div>
   );

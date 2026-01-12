@@ -36,8 +36,12 @@ export async function searchProducts(color: string, category: string = "shirt", 
   return response.json();
 }
 
-export function getAmazonSearchUrl(color: string, category: string = "clothing", gender?: Gender): string {
-  const genderPrefix = gender === "male" ? "mens " : gender === "female" ? "womens " : "";
-  const query = encodeURIComponent(`${genderPrefix}${color} ${category}`);
+export function getAmazonSearchUrl(color: string, category: "all" | "tops" | "bottoms" = "all", gender?: Gender): string {
+  const genderPrefix = gender === "male" ? "Mens" : gender === "female" ? "Womens" : "";
+  const categoryName = category === "tops" ? "Tops" : category === "bottoms" ? "Bottoms" : "";
+
+  // Build query: [Mens/Womens/Blank] [Color] color [Tops/Bottoms]
+  const parts = [genderPrefix, color, "color", categoryName].filter(Boolean);
+  const query = encodeURIComponent(parts.join(" "));
   return `https://www.amazon.com/s?k=${query}`;
 }
