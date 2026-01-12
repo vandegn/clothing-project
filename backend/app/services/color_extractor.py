@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from sklearn.cluster import KMeans
 from app.models.schemas import ExtractedColors, SamplePoint, DebugInfo
 
@@ -8,6 +8,9 @@ from app.models.schemas import ExtractedColors, SamplePoint, DebugInfo
 class ColorExtractor:
     """
     Extracts dominant colors from facial regions using OpenCV and K-means clustering.
+
+    Uses segmentation masks for hair and skin when available, falls back to
+    landmark-based extraction otherwise. Eye color always uses Face Mesh landmarks.
     """
 
     def __init__(self, n_clusters: int = 3):
@@ -20,13 +23,19 @@ class ColorExtractor:
         self.n_clusters = n_clusters
         self._sample_points: List[SamplePoint] = []
 
-    def extract_colors(self, image: np.ndarray, landmarks: Dict) -> Tuple[ExtractedColors, DebugInfo]:
+    def extract_colors(
+        self,
+        image: np.ndarray,
+        landmarks: Dict,
+        segmentation: Optional[Dict] = None
+    ) -> Tuple[ExtractedColors, DebugInfo]:
         """
-        Extract eye, hair, and skin colors from the image using landmarks.
+        Extract eye, hair, and skin colors from the image.
 
         Args:
             image: RGB numpy array of the image
             landmarks: Dictionary of landmark coordinates from FaceAnalyzer
+            segmentation: Optional dictionary with hair_mask and face_skin_mask from ImageSegmenter
 
         Returns:
             Tuple of (ExtractedColors with hex codes, DebugInfo with sample points)
@@ -34,18 +43,36 @@ class ColorExtractor:
         self._sample_points = []
         h, w = image.shape[:2]
 
-        # Extract eye color (average of both irises)
+        # Extract eye color (always uses Face Mesh landmarks - most accurate for irises)
         eye_color, eye_point = self._extract_eye_color(image, landmarks)
         if eye_point:
             self._sample_points.append(SamplePoint(x=eye_point[0], y=eye_point[1], label="eyes"))
 
-        # Extract skin color (from cheeks and forehead)
-        skin_color, skin_point = self._extract_skin_color(image, landmarks)
+        # Extract skin color (prefer segmentation mask over landmarks)
+        if segmentation and segmentation.get("face_skin_mask") is not None:
+            skin_color, skin_point = self._extract_skin_color_from_mask(
+                image, segmentation["face_skin_mask"]
+            )
+            # Fall back to landmarks if mask extraction failed
+            if skin_color is None:
+                skin_color, skin_point = self._extract_skin_color_from_landmarks(image, landmarks)
+        else:
+            skin_color, skin_point = self._extract_skin_color_from_landmarks(image, landmarks)
+
         if skin_point:
             self._sample_points.append(SamplePoint(x=skin_point[0], y=skin_point[1], label="skin"))
 
-        # Extract hair color (from region above forehead)
-        hair_color, hair_point = self._extract_hair_color(image, landmarks)
+        # Extract hair color (prefer segmentation mask over heuristic)
+        if segmentation and segmentation.get("hair_mask") is not None:
+            hair_color, hair_point = self._extract_hair_color_from_mask(
+                image, segmentation["hair_mask"]
+            )
+            # Fall back to heuristic if mask extraction failed (e.g., bald)
+            if hair_color is None:
+                hair_color, hair_point = self._extract_hair_color_from_landmarks(image, landmarks)
+        else:
+            hair_color, hair_point = self._extract_hair_color_from_landmarks(image, landmarks)
+
         if hair_point:
             self._sample_points.append(SamplePoint(x=hair_point[0], y=hair_point[1], label="hair"))
 
@@ -64,14 +91,14 @@ class ColorExtractor:
         return colors, debug_info
 
     def _extract_eye_color(self, image: np.ndarray, landmarks: Dict) -> Tuple[Tuple[int, int, int], Tuple[int, int]]:
-        """Extract dominant eye color from iris regions."""
-        # Combine both iris regions
+        """Extract dominant eye color from iris regions using Face Mesh landmarks."""
+        # Get iris regions for both eyes
         left_iris = landmarks.get("left_eye_iris", [])
         right_iris = landmarks.get("right_eye_iris", [])
 
-        # Calculate center point for debug
+        # Calculate sample point from RIGHT eye only (not average of both, which lands on nose bridge)
         sample_point = None
-        all_coords = left_iris + right_iris
+        sample_coords = right_iris if right_iris else left_iris
 
         # Get pixels from iris regions
         pixels = []
@@ -84,16 +111,16 @@ class ColorExtractor:
             # Fallback: use eye outline if iris not detected
             left_outline = landmarks.get("left_eye_outline", [])
             right_outline = landmarks.get("right_eye_outline", [])
-            all_coords = left_outline + right_outline
+            sample_coords = right_outline if right_outline else left_outline
             for coords in [left_outline, right_outline]:
                 if coords:
                     region_pixels = self._get_region_pixels(image, coords, expand=0)
                     pixels.extend(region_pixels)
 
-        # Calculate center point from all coordinates
-        if all_coords:
-            avg_x = sum(c[0] for c in all_coords) // len(all_coords)
-            avg_y = sum(c[1] for c in all_coords) // len(all_coords)
+        # Calculate center point from ONE eye's coordinates (not both)
+        if sample_coords:
+            avg_x = sum(c[0] for c in sample_coords) // len(sample_coords)
+            avg_y = sum(c[1] for c in sample_coords) // len(sample_coords)
             sample_point = (avg_x, avg_y)
 
         if not pixels:
@@ -101,8 +128,38 @@ class ColorExtractor:
 
         return self._get_dominant_color(np.array(pixels)), sample_point
 
-    def _extract_skin_color(self, image: np.ndarray, landmarks: Dict) -> Tuple[Tuple[int, int, int], Tuple[int, int]]:
-        """Extract dominant skin color from cheeks and forehead."""
+    def _extract_skin_color_from_mask(
+        self, image: np.ndarray, face_skin_mask: np.ndarray
+    ) -> Tuple[Optional[Tuple[int, int, int]], Optional[Tuple[int, int]]]:
+        """
+        Extract skin color from face_skin segmentation mask.
+
+        Args:
+            image: RGB numpy array
+            face_skin_mask: Boolean mask where True = face skin pixel
+
+        Returns:
+            Tuple of (RGB color, centroid point) or (None, None) if extraction fails
+        """
+        if not np.any(face_skin_mask):
+            return None, None
+
+        # Get all pixels within the face skin mask
+        pixels = image[face_skin_mask]
+
+        if len(pixels) < 10:
+            return None, None
+
+        # Calculate centroid for debug point
+        y_coords, x_coords = np.where(face_skin_mask)
+        centroid = (int(np.mean(x_coords)), int(np.mean(y_coords)))
+
+        return self._get_dominant_color(pixels), centroid
+
+    def _extract_skin_color_from_landmarks(
+        self, image: np.ndarray, landmarks: Dict
+    ) -> Tuple[Tuple[int, int, int], Optional[Tuple[int, int]]]:
+        """Extract skin color using Face Mesh cheek and forehead landmarks (fallback method)."""
         pixels = []
         all_coords = []
 
@@ -127,10 +184,48 @@ class ColorExtractor:
 
         return self._get_dominant_color(np.array(pixels)), sample_point
 
-    def _extract_hair_color(self, image: np.ndarray, landmarks: Dict) -> Tuple[Tuple[int, int, int], Tuple[int, int]]:
+    def _extract_hair_color_from_mask(
+        self, image: np.ndarray, hair_mask: np.ndarray
+    ) -> Tuple[Optional[Tuple[int, int, int]], Optional[Tuple[int, int]]]:
         """
-        Extract hair color from the region above the forehead.
-        Hair detection is tricky - we sample from above the top of the face mesh.
+        Extract hair color from hair segmentation mask.
+
+        Args:
+            image: RGB numpy array
+            hair_mask: Boolean mask where True = hair pixel
+
+        Returns:
+            Tuple of (RGB color, centroid point) or (None, None) if no hair detected
+        """
+        if not np.any(hair_mask):
+            # No hair detected (possibly bald or wearing hat)
+            return None, None
+
+        # Get all pixels within the hair mask
+        pixels = image[hair_mask]
+
+        if len(pixels) < 10:
+            return None, None
+
+        # Filter out very bright pixels (likely highlights or reflections)
+        brightness = np.mean(pixels, axis=1)
+        mask = brightness < 240
+        filtered_pixels = pixels[mask]
+
+        if len(filtered_pixels) < 10:
+            filtered_pixels = pixels  # Use unfiltered if too few remain
+
+        # Calculate centroid for debug point
+        y_coords, x_coords = np.where(hair_mask)
+        centroid = (int(np.mean(x_coords)), int(np.mean(y_coords)))
+
+        return self._get_dominant_color(filtered_pixels), centroid
+
+    def _extract_hair_color_from_landmarks(
+        self, image: np.ndarray, landmarks: Dict
+    ) -> Tuple[Tuple[int, int, int], Optional[Tuple[int, int]]]:
+        """
+        Extract hair color from region above forehead (fallback heuristic method).
         """
         top_head = landmarks.get("top_head", [])
         w, h = landmarks.get("image_dimensions", (image.shape[1], image.shape[0]))
@@ -142,7 +237,6 @@ class ColorExtractor:
         top_y = min(coord[1] for coord in top_head)
 
         # Sample from above the face (hair region)
-        # We'll sample a band above the forehead
         hair_band_top = max(0, top_y - 80)
         hair_band_bottom = max(0, top_y - 10)
 

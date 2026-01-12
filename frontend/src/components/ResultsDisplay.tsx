@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { AnalysisResult } from "@/lib/types";
 import ColorSwatch from "./ColorSwatch";
 import SeasonCard from "./SeasonCard";
@@ -13,10 +14,12 @@ interface ResultsDisplayProps {
 }
 
 export default function ResultsDisplay({ result, onReset, uploadedImage }: ResultsDisplayProps) {
+  const [showDebug, setShowDebug] = useState(false);
+
   return (
     <div className="space-y-8">
-      {/* Debug Overlay - Show sample points on image */}
-      {uploadedImage && result.debug_info && (
+      {/* Debug Overlay - Show sample points on image (toggle-able) */}
+      {showDebug && uploadedImage && result.debug_info && (
         <DebugOverlay
           imageUrl={uploadedImage}
           debugInfo={result.debug_info}
@@ -34,9 +37,24 @@ export default function ResultsDisplay({ result, onReset, uploadedImage }: Resul
 
       {/* Extracted Colors */}
       <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
-          Your Natural Colors
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+            Your Natural Colors
+          </h3>
+          {uploadedImage && result.debug_info && (
+            <button
+              onClick={() => setShowDebug(!showDebug)}
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                showDebug
+                  ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
+                  : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${showDebug ? "bg-green-500" : "bg-slate-400"}`} />
+              {showDebug ? "Debug On" : "Debug Off"}
+            </button>
+          )}
+        </div>
         <div className="flex flex-wrap gap-6 justify-center">
           <div className="text-center">
             <div

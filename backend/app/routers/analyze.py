@@ -9,11 +9,13 @@ from app.services.face_analyzer import FaceAnalyzer
 from app.services.color_extractor import ColorExtractor
 from app.services.color_theory import ColorTheoryAnalyzer
 from app.services.palette_generator import PaletteGenerator
+from app.services.image_segmenter import ImageSegmenter
 
 router = APIRouter()
 
 # Initialize services
 face_analyzer = FaceAnalyzer()
+image_segmenter = ImageSegmenter()
 color_extractor = ColorExtractor()
 color_theory = ColorTheoryAnalyzer()
 palette_generator = PaletteGenerator()
@@ -40,18 +42,21 @@ async def analyze_image(request: AnalyzeRequest):
         # Convert to numpy array for OpenCV
         image_array = np.array(image)
 
-        # Step 1: Detect face landmarks
+        # Step 1: Detect face landmarks (for eye color extraction)
         landmarks = face_analyzer.detect_landmarks(image_array)
         if landmarks is None:
             raise HTTPException(status_code=400, detail="No face detected in the image")
 
-        # Step 2: Extract colors from facial regions
-        colors, debug_info = color_extractor.extract_colors(image_array, landmarks)
+        # Step 2: Run segmentation (for hair and skin color extraction)
+        segmentation = image_segmenter.segment(image_array)
 
-        # Step 3: Analyze colors to determine season
+        # Step 3: Extract colors using landmarks (eyes) and segmentation (hair/skin)
+        colors, debug_info = color_extractor.extract_colors(image_array, landmarks, segmentation)
+
+        # Step 4: Analyze colors to determine season
         analysis = color_theory.analyze(colors)
 
-        # Step 4: Generate palette based on season
+        # Step 5: Generate palette based on season
         palette = palette_generator.generate(analysis["season"])
 
         return AnalyzeResponse(
