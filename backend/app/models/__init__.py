@@ -2,12 +2,16 @@ from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
     ExtractedColors,
-    ColorPalette
+    ColorPalette,
+    SamplePoint,
+    DebugInfo
 )
 
 __all__ = [
     "AnalyzeRequest",
     "AnalyzeResponse",
     "ExtractedColors",
-    "ColorPalette"
+    "ColorPalette",
+    "SamplePoint",
+    "DebugInfo"
 ]

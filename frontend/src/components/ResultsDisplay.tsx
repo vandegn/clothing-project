@@ -4,15 +4,26 @@ import { AnalysisResult } from "@/lib/types";
 import ColorSwatch from "./ColorSwatch";
 import SeasonCard from "./SeasonCard";
 import ClothingRecommendations from "./ClothingRecommendations";
+import DebugOverlay from "./DebugOverlay";
 
 interface ResultsDisplayProps {
   result: AnalysisResult;
   onReset: () => void;
+  uploadedImage?: string | null;
 }
 
-export default function ResultsDisplay({ result, onReset }: ResultsDisplayProps) {
+export default function ResultsDisplay({ result, onReset, uploadedImage }: ResultsDisplayProps) {
   return (
     <div className="space-y-8">
+      {/* Debug Overlay - Show sample points on image */}
+      {uploadedImage && result.debug_info && (
+        <DebugOverlay
+          imageUrl={uploadedImage}
+          debugInfo={result.debug_info}
+          colors={result.colors}
+        />
+      )}
+
       {/* Season Result */}
       <SeasonCard
         season={result.season}

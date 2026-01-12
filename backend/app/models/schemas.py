@@ -1,5 +1,19 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+
+class SamplePoint(BaseModel):
+    """A point where color was sampled"""
+    x: int
+    y: int
+    label: str  # "eyes", "hair", or "skin"
+
+
+class DebugInfo(BaseModel):
+    """Debug information about the color extraction"""
+    sample_points: List[SamplePoint]
+    image_width: int
+    image_height: int
 
 
 class ExtractedColors(BaseModel):
@@ -28,3 +42,4 @@ class AnalyzeResponse(BaseModel):
     palette: List[ColorPalette]  # 16 colors
     undertone: str  # warm or cool
     contrast: str  # low, medium, or high
+    debug_info: Optional[DebugInfo] = None  # Debug sample points

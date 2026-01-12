@@ -11,10 +11,12 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
   const handleImageUpload = async (base64Image: string) => {
     setIsAnalyzing(true);
     setError(null);
+    setUploadedImage(base64Image);
 
     try {
       const analysisResult = await analyzeImage(base64Image);
@@ -29,6 +31,7 @@ export default function Home() {
   const handleReset = () => {
     setResult(null);
     setError(null);
+    setUploadedImage(null);
   };
 
   return (
@@ -60,7 +63,7 @@ export default function Home() {
         {isAnalyzing && <LoadingAnalysis />}
 
         {result && (
-          <ResultsDisplay result={result} onReset={handleReset} />
+          <ResultsDisplay result={result} onReset={handleReset} uploadedImage={uploadedImage} />
         )}
 
         {/* How It Works */}

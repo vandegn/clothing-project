@@ -46,7 +46,7 @@ async def analyze_image(request: AnalyzeRequest):
             raise HTTPException(status_code=400, detail="No face detected in the image")
 
         # Step 2: Extract colors from facial regions
-        colors = color_extractor.extract_colors(image_array, landmarks)
+        colors, debug_info = color_extractor.extract_colors(image_array, landmarks)
 
         # Step 3: Analyze colors to determine season
         analysis = color_theory.analyze(colors)
@@ -60,7 +60,8 @@ async def analyze_image(request: AnalyzeRequest):
             season_description=analysis["description"],
             palette=palette,
             undertone=analysis["undertone"],
-            contrast=analysis["contrast"]
+            contrast=analysis["contrast"],
+            debug_info=debug_info
         )
 
     except HTTPException:

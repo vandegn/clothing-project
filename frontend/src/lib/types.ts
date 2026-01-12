@@ -9,6 +9,18 @@ export interface ColorPalette {
   name: string;
 }
 
+export interface SamplePoint {
+  x: number;
+  y: number;
+  label: "eyes" | "hair" | "skin";
+}
+
+export interface DebugInfo {
+  sample_points: SamplePoint[];
+  image_width: number;
+  image_height: number;
+}
+
 export interface AnalysisResult {
   colors: ExtractedColors;
   season: "spring" | "summer" | "autumn" | "winter";
@@ -16,6 +28,7 @@ export interface AnalysisResult {
   palette: ColorPalette[];
   undertone: "warm" | "cool";
   contrast: "low" | "medium" | "high";
+  debug_info?: DebugInfo;
 }
 
 export interface Product {
