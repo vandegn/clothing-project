@@ -1,4 +1,4 @@
-import { AnalysisResult, Product } from "./types";
+import { AnalysisResult, Product, Gender } from "./types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -22,9 +22,10 @@ export async function analyzeImage(base64Image: string): Promise<AnalysisResult>
   return response.json();
 }
 
-export async function searchProducts(color: string, category: string = "shirt"): Promise<Product[]> {
+export async function searchProducts(color: string, category: string = "shirt", gender?: Gender): Promise<Product[]> {
+  const genderPrefix = gender === "male" ? "mens" : gender === "female" ? "womens" : "";
   const response = await fetch(
-    `/api/products?color=${encodeURIComponent(color)}&category=${encodeURIComponent(category)}`
+    `/api/products?color=${encodeURIComponent(color)}&category=${encodeURIComponent(category)}&gender=${encodeURIComponent(genderPrefix)}`
   );
 
   if (!response.ok) {
@@ -35,7 +36,8 @@ export async function searchProducts(color: string, category: string = "shirt"):
   return response.json();
 }
 
-export function getAmazonSearchUrl(color: string, category: string = "clothing"): string {
-  const query = encodeURIComponent(`${color} ${category}`);
+export function getAmazonSearchUrl(color: string, category: string = "clothing", gender?: Gender): string {
+  const genderPrefix = gender === "male" ? "mens " : gender === "female" ? "womens " : "";
+  const query = encodeURIComponent(`${genderPrefix}${color} ${category}`);
   return `https://www.amazon.com/s?k=${query}`;
 }

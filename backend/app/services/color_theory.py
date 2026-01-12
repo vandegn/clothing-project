@@ -36,11 +36,11 @@ class ColorTheoryAnalyzer:
         # Determine undertone (warm vs cool)
         undertone = self._determine_undertone(skin_rgb)
 
-        # Calculate contrast level
-        contrast = self._calculate_contrast(skin_rgb, hair_rgb, eye_rgb)
+        # Calculate contrast level (returns category and raw score)
+        contrast, contrast_score = self._calculate_contrast(skin_rgb, hair_rgb, eye_rgb)
 
-        # Determine season based on undertone and contrast
-        season = self._determine_season(undertone, contrast)
+        # Determine season based on undertone, contrast category, and raw score
+        season = self._determine_season(undertone, contrast, contrast_score)
 
         return {
             "season": season,
@@ -86,12 +86,15 @@ class ColorTheoryAnalyzer:
 
     def _calculate_contrast(self, skin_rgb: Tuple[int, int, int],
                            hair_rgb: Tuple[int, int, int],
-                           eye_rgb: Tuple[int, int, int]) -> str:
+                           eye_rgb: Tuple[int, int, int]) -> Tuple[str, float]:
         """
         Calculate the contrast level between skin, hair, and eyes.
 
         High contrast: Large difference between lightest and darkest features
         Low contrast: Features are similar in value/brightness
+
+        Returns:
+            Tuple of (contrast category, raw contrast score)
         """
         # Calculate luminance for each
         def luminance(rgb):
@@ -111,36 +114,41 @@ class ColorTheoryAnalyzer:
 
         # Categorize contrast level
         if contrast_score > 0.45:
-            return "high"
+            return "high", contrast_score
         elif contrast_score > 0.25:
-            return "medium"
+            return "medium", contrast_score
         else:
-            return "low"
+            return "low", contrast_score
 
-    def _determine_season(self, undertone: str, contrast: str) -> str:
+    def _determine_season(self, undertone: str, contrast: str, contrast_score: float = 0.35) -> str:
         """
         Determine season based on undertone and contrast.
 
-        Spring: Warm + Low/Medium contrast
-        Summer: Cool + Low/Medium contrast
-        Autumn: Warm + Medium/High contrast
-        Winter: Cool + Medium/High contrast
+        Spring: Warm + Low/Medium-low contrast
+        Summer: Cool + Low/Medium-low contrast
+        Autumn: Warm + Medium-high/High contrast
+        Winter: Cool + Medium-high/High contrast
+
+        For medium contrast, use the raw score to break ties:
+        - Medium contrast <= 0.35 leans toward Spring/Summer (softer)
+        - Medium contrast > 0.35 leans toward Autumn/Winter (bolder)
         """
+        # Threshold to split medium contrast into soft vs bold
+        MEDIUM_SPLIT = 0.35
+
         if undertone == "warm":
             if contrast == "high":
                 return "autumn"
             elif contrast == "low":
                 return "spring"
             else:  # medium
-                # Medium contrast warm can go either way
-                # Default to autumn for richer palette
-                return "autumn"
+                # Use contrast score to decide: lower medium = spring, higher medium = autumn
+                return "spring" if contrast_score <= MEDIUM_SPLIT else "autumn"
         else:  # cool
             if contrast == "high":
                 return "winter"
             elif contrast == "low":
                 return "summer"
             else:  # medium
-                # Medium contrast cool can go either way
-                # Default to winter for bolder palette
-                return "winter"
+                # Use contrast score to decide: lower medium = summer, higher medium = winter
+                return "summer" if contrast_score <= MEDIUM_SPLIT else "winter"

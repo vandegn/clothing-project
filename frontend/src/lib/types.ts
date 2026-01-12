@@ -1,3 +1,5 @@
+export type Gender = "male" | "female" | "non-binary";
+
 export interface ExtractedColors {
   eyes: string;
   hair: string;

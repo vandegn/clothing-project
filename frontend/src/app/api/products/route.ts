@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const color = searchParams.get("color") || "blue";
   const category = searchParams.get("category") || "shirt";
+  const gender = searchParams.get("gender") || "";
 
   // If no API key, return mock data indicator
   if (!RAPIDAPI_KEY) {
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const searchQuery = `${color} ${category}`;
+    const genderPrefix = gender ? `${gender} ` : "";
+    const searchQuery = `${genderPrefix}${color} ${category}`;
     const url = `https://${RAPIDAPI_HOST}/v1/search?searchQuery=${encodeURIComponent(searchQuery)}&page=1&countryCode=US`;
 
     const response = await fetch(url, {

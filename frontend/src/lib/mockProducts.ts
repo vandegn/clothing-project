@@ -1,4 +1,4 @@
-import { ColorPalette, Product } from "./types";
+import { ColorPalette, Product, Gender } from "./types";
 
 // Mock product templates by color
 const productTemplates: Record<string, Partial<Product>[]> = {
@@ -123,9 +123,13 @@ const fallbackProducts: Partial<Product>[] = [
   { title: "Casual Button-Down Shirt", price: "$44.99", image: "https://placehold.co/300x300/8b5cf6/ffffff?text=Shirt" },
 ];
 
-export function getMockProducts(palette: ColorPalette[]): Product[] {
+export function getMockProducts(palette: ColorPalette[], gender: Gender = "female"): Product[] {
   const products: Product[] = [];
   let idCounter = 1;
+
+  // Gender prefix for search queries
+  const genderPrefix = gender === "male" ? "mens " : gender === "female" ? "womens " : "";
+  const genderLabel = gender === "male" ? "Men's" : gender === "female" ? "Women's" : "";
 
   for (const color of palette) {
     const colorName = color.name.toLowerCase();
@@ -153,12 +157,15 @@ export function getMockProducts(palette: ColorPalette[]): Product[] {
 
     // Add one product for this color
     const template = matchingProducts[products.length % matchingProducts.length];
+    const baseTitle = template.title || `${color.name} Clothing Item`;
+    const title = genderLabel ? `${genderLabel} ${baseTitle}` : baseTitle;
+
     products.push({
       id: `product-${idCounter++}`,
-      title: template.title || `${color.name} Clothing Item`,
+      title,
       price: template.price || "$39.99",
       image: template.image || `https://placehold.co/300x300/${color.hex.slice(1)}/ffffff?text=${encodeURIComponent(color.name)}`,
-      url: `https://www.amazon.com/s?k=${encodeURIComponent(color.name + " clothing")}`,
+      url: `https://www.amazon.com/s?k=${encodeURIComponent(genderPrefix + color.name + " clothing")}`,
       color: color.hex,
     });
 

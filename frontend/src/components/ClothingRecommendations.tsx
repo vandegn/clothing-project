@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ColorPalette, Product } from "@/lib/types";
+import { ColorPalette, Product, Gender } from "@/lib/types";
 import { getAmazonSearchUrl } from "@/lib/api";
 import ClothingCard from "./ClothingCard";
 import { getMockProducts } from "@/lib/mockProducts";
 
 interface ClothingRecommendationsProps {
   palette: ColorPalette[];
+  gender: Gender;
 }
 
-export default function ClothingRecommendations({ palette }: ClothingRecommendationsProps) {
+export default function ClothingRecommendations({ palette, gender }: ClothingRecommendationsProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "tops" | "bottoms">("all");
@@ -21,8 +22,8 @@ export default function ClothingRecommendations({ palette }: ClothingRecommendat
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // Get mock products based on palette colors
-        const mockProducts = getMockProducts(palette);
+        // Get mock products based on palette colors and gender
+        const mockProducts = getMockProducts(palette, gender);
         setProducts(mockProducts);
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -32,7 +33,7 @@ export default function ClothingRecommendations({ palette }: ClothingRecommendat
     };
 
     fetchProducts();
-  }, [palette]);
+  }, [palette, gender]);
 
   const filteredProducts = selectedCategory === "all"
     ? products
@@ -103,7 +104,7 @@ export default function ClothingRecommendations({ palette }: ClothingRecommendat
               {palette.slice(0, 6).map((color, index) => (
                 <a
                   key={index}
-                  href={getAmazonSearchUrl(color.name, "clothing")}
+                  href={getAmazonSearchUrl(color.name, "clothing", gender)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-full text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"

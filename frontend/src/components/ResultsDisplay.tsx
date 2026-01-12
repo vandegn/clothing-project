@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnalysisResult } from "@/lib/types";
+import { AnalysisResult, Gender } from "@/lib/types";
 import ColorSwatch from "./ColorSwatch";
 import SeasonCard from "./SeasonCard";
 import ClothingRecommendations from "./ClothingRecommendations";
@@ -11,9 +11,10 @@ interface ResultsDisplayProps {
   result: AnalysisResult;
   onReset: () => void;
   uploadedImage?: string | null;
+  gender: Gender;
 }
 
-export default function ResultsDisplay({ result, onReset, uploadedImage }: ResultsDisplayProps) {
+export default function ResultsDisplay({ result, onReset, uploadedImage, gender }: ResultsDisplayProps) {
   const [showDebug, setShowDebug] = useState(false);
 
   return (
@@ -87,7 +88,7 @@ export default function ResultsDisplay({ result, onReset, uploadedImage }: Resul
       <ColorSwatch palette={result.palette} season={result.season} />
 
       {/* Clothing Recommendations */}
-      <ClothingRecommendations palette={result.palette} />
+      <ClothingRecommendations palette={result.palette} gender={gender} />
 
       {/* Try Again Button */}
       <div className="text-center pt-4">
