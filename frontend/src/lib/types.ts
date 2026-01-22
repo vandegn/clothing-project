@@ -1,4 +1,4 @@
-export type Gender = "male" | "female" | "non-binary";
+export type Gender = "male" | "female";
 
 export interface ExtractedColors {
   eyes: string;
@@ -31,13 +31,4 @@ export interface AnalysisResult {
   undertone: "warm" | "cool";
   contrast: "low" | "medium" | "high";
   debug_info?: DebugInfo;
-}
-
-export interface Product {
-  id: string;
-  title: string;
-  price: string;
-  image: string;
-  url: string;
-  color: string;
 }

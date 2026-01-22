@@ -10,6 +10,7 @@ interface ColorSwatchProps {
 
 export default function ColorSwatch({ palette, season }: ColorSwatchProps) {
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const copyToClipboard = async (hex: string) => {
     try {
@@ -31,58 +32,94 @@ export default function ColorSwatch({ palette, season }: ColorSwatchProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-        Your {season.charAt(0).toUpperCase() + season.slice(1)} Color Palette
-      </h3>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-        Click any color to copy its hex code
-      </p>
+    <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-[var(--color-charcoal-soft)]/40 backdrop-blur-sm border border-[var(--color-stone-light)]/20 p-8 animate-fade-up delay-200">
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px w-8 bg-[var(--color-terracotta)]" />
+            <span className="text-xs font-medium tracking-widest uppercase text-[var(--color-stone)]">
+              Your Palette
+            </span>
+          </div>
+          <h3 className="font-display text-2xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
+            {season.charAt(0).toUpperCase() + season.slice(1)} Colors
+          </h3>
+        </div>
+        <p className="text-sm text-[var(--color-stone)] hidden sm:block">
+          Click to copy hex code
+        </p>
+      </div>
 
-      <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+      {/* Main color grid - large swatches */}
+      <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3 mb-8">
         {palette.map((color, index) => (
           <button
             key={index}
             onClick={() => copyToClipboard(color.hex)}
-            className="group relative aspect-square rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            className="group relative aspect-square rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:scale-105 hover:z-10 focus:outline-none focus:ring-2 focus:ring-[var(--color-terracotta)] focus:ring-offset-2"
             style={{ backgroundColor: color.hex }}
             title={`${color.name} - ${color.hex}`}
           >
-            {/* Color name tooltip on hover */}
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              <div className="bg-slate-900 dark:bg-slate-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+            {/* Hover overlay with color name */}
+            <div className={`absolute inset-0 rounded-2xl flex items-center justify-center transition-opacity duration-200 ${
+              hoveredIndex === index ? "opacity-100" : "opacity-0"
+            }`}>
+              <div className={`text-xs font-medium px-2 py-1 rounded-lg backdrop-blur-sm ${
+                isLightColor(color.hex)
+                  ? "bg-black/10 text-black/80"
+                  : "bg-white/20 text-white"
+              }`}>
                 {color.name}
               </div>
             </div>
 
             {/* Copied indicator */}
             {copiedColor === color.hex && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                <svg
-                  className={`w-6 h-6 ${isLightColor(color.hex) ? "text-slate-900" : "text-white"}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-2xl animate-scale-in">
+                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/90">
+                  <svg
+                    className="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-xs font-medium text-[var(--color-charcoal)]">Copied</span>
+                </div>
               </div>
             )}
           </button>
         ))}
       </div>
 
-      {/* Color list for accessibility */}
-      <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
-        {palette.map((color, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <div
-              className="w-4 h-4 rounded-full border border-slate-200 dark:border-slate-600"
-              style={{ backgroundColor: color.hex }}
-            />
-            <span className="text-slate-600 dark:text-slate-400">{color.name}</span>
-          </div>
-        ))}
+      {/* Color list - elegant horizontal layout */}
+      <div className="border-t border-[var(--color-stone-light)]/20 pt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-3">
+          {palette.map((color, index) => (
+            <button
+              key={index}
+              onClick={() => copyToClipboard(color.hex)}
+              className="group flex items-center gap-3 text-left hover:bg-[var(--color-cream-dark)]/50 dark:hover:bg-[var(--color-charcoal)]/50 rounded-lg p-2 -m-2 transition-colors"
+            >
+              <div
+                className="w-5 h-5 rounded-md shadow-sm ring-1 ring-black/5 flex-shrink-0 transition-transform group-hover:scale-110"
+                style={{ backgroundColor: color.hex }}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)] truncate">
+                  {color.name}
+                </p>
+                <p className="text-xs text-[var(--color-stone)] group-hover:text-[var(--color-terracotta)] transition-colors">
+                  {color.hex}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

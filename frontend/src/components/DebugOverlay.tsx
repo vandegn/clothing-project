@@ -10,16 +10,16 @@ interface DebugOverlayProps {
 
 const labelStyles = {
   eyes: {
-    color: "#3B82F6", // blue
-    bgColor: "bg-blue-500",
+    color: "#7C3AED", // purple
+    name: "Eyes",
   },
   hair: {
-    color: "#8B5CF6", // purple
-    bgColor: "bg-purple-500",
+    color: "#C4775A", // terracotta
+    name: "Hair",
   },
   skin: {
-    color: "#F59E0B", // amber
-    bgColor: "bg-amber-500",
+    color: "#8B9A7E", // sage
+    name: "Skin",
   },
 };
 
@@ -27,24 +27,36 @@ export default function DebugOverlay({ imageUrl, debugInfo, colors }: DebugOverl
   const { sample_points, image_width, image_height } = debugInfo;
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-          Debug: Sample Points
-        </h3>
+    <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-[var(--color-charcoal-soft)]/40 backdrop-blur-sm border border-[var(--color-stone-light)]/20 p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-px w-8 bg-[var(--color-terracotta)]" />
+            <span className="text-xs font-medium tracking-widest uppercase text-[var(--color-stone)]">
+              Developer View
+            </span>
+          </div>
+          <h3 className="font-display text-xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
+            Sample Points Visualization
+          </h3>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-xs font-medium text-green-700 dark:text-green-400">Active</span>
+        </div>
       </div>
 
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-        The markers show where colors were sampled from your photo.
+      <p className="text-sm text-[var(--color-stone)] mb-6">
+        The markers show where colors were sampled from your photo during analysis.
       </p>
 
       {/* Image with overlay */}
-      <div className="relative inline-block w-full max-w-lg mx-auto">
+      <div className="relative inline-block w-full max-w-lg mx-auto rounded-2xl overflow-hidden shadow-xl">
         <img
           src={imageUrl}
           alt="Analyzed photo"
-          className="w-full h-auto rounded-lg"
+          className="w-full h-auto"
         />
 
         {/* SVG overlay for sample points */}
@@ -122,7 +134,7 @@ export default function DebugOverlay({ imageUrl, debugInfo, colors }: DebugOverl
                   fill="white"
                   fontSize={Math.min(image_width, image_height) * 0.03}
                   fontWeight="bold"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
+                  style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9)" }}
                 >
                   {point.label.toUpperCase()}
                 </text>
@@ -133,24 +145,27 @@ export default function DebugOverlay({ imageUrl, debugInfo, colors }: DebugOverl
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-4 justify-center">
+      <div className="mt-6 flex flex-wrap gap-4 justify-center">
         {sample_points.map((point, index) => {
           const style = labelStyles[point.label];
           const extractedColor = colors[point.label];
 
           return (
-            <div key={index} className="flex items-center gap-2">
+            <div
+              key={index}
+              className="flex items-center gap-3 px-4 py-2 rounded-full bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal)]"
+            >
               <div
-                className={`w-4 h-4 rounded-full border-2`}
+                className="w-5 h-5 rounded-full ring-2 shadow-sm"
                 style={{
                   backgroundColor: extractedColor,
-                  borderColor: style.color,
+                  ringColor: style.color,
                 }}
               />
-              <span className="text-sm text-slate-600 dark:text-slate-400 capitalize">
-                {point.label}
+              <span className="text-sm font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)] capitalize">
+                {style.name}
               </span>
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-[var(--color-stone)] font-mono">
                 ({point.x}, {point.y})
               </span>
             </div>
@@ -159,13 +174,21 @@ export default function DebugOverlay({ imageUrl, debugInfo, colors }: DebugOverl
       </div>
 
       {/* Debug info */}
-      <div className="mt-4 p-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-mono">
-        <p className="text-slate-600 dark:text-slate-400">
-          Image: {image_width} x {image_height}px
-        </p>
-        <p className="text-slate-600 dark:text-slate-400 mt-1">
-          Sample points: {sample_points.length}
-        </p>
+      <div className="mt-6 p-4 bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal)] rounded-2xl">
+        <div className="flex flex-wrap gap-6 text-xs font-mono text-[var(--color-stone)]">
+          <div>
+            <span className="text-[var(--color-stone-light)]">Image size:</span>{" "}
+            <span className="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
+              {image_width} x {image_height}px
+            </span>
+          </div>
+          <div>
+            <span className="text-[var(--color-stone-light)]">Sample points:</span>{" "}
+            <span className="text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
+              {sample_points.length}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

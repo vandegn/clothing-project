@@ -1,4 +1,4 @@
-import { AnalysisResult, Product, Gender } from "./types";
+import { AnalysisResult, Gender } from "./types";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -17,20 +17,6 @@ export async function analyzeImage(base64Image: string): Promise<AnalysisResult>
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: "Unknown error" }));
     throw new Error(error.detail || `Analysis failed: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-export async function searchProducts(color: string, category: string = "shirt", gender?: Gender): Promise<Product[]> {
-  const genderPrefix = gender === "male" ? "mens" : gender === "female" ? "womens" : "";
-  const response = await fetch(
-    `/api/products?color=${encodeURIComponent(color)}&category=${encodeURIComponent(category)}&gender=${encodeURIComponent(genderPrefix)}`
-  );
-
-  if (!response.ok) {
-    console.error("Product search failed:", response.status);
-    return [];
   }
 
   return response.json();

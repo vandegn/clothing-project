@@ -38,3 +38,5 @@ coverage/
 # Temp files
 tmpclaude-*
 *.tmp
+
+CLAUDE.md
