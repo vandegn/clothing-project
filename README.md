@@ -1,20 +1,23 @@
-# Color Palette Analyzer
+# Chromatic — Discover Your Color Season
 
 A web application that analyzes selfies to extract eye, hair, and skin colors, determines your seasonal color palette, and recommends matching clothing.
 
 ## Features
 
-- **AI-Powered Color Analysis**: Uses Google MediaPipe and OpenCV to detect facial features and extract colors
-- **Seasonal Color Theory**: Determines if you're a Spring, Summer, Autumn, or Winter type
-- **Personalized Palette**: Generates a 16-color palette tailored to your coloring
-- **Clothing Recommendations**: Suggests clothing items that match your colors (via Amazon)
+- **AI-Powered Color Analysis**: Uses Google MediaPipe for face mesh and image segmentation, plus K-means clustering to extract dominant eye, hair, and skin colors
+- **Seasonal Color Theory**: Determines if you're a Spring, Summer, Autumn, or Winter type based on undertone and contrast
+- **Personalized Palette**: Generates a curated 16-color palette tailored to your coloring
+- **Clothing Recommendations**: Links to Amazon search results for clothing in your recommended colors, filtered by gender and category (tops/bottoms)
+- **Virtual Try-On** (coming soon): Upload a full-body photo and a clothing item to see how it looks on you
+- **Authentication**: Google OAuth via Supabase for the try-on feature
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React 18, Tailwind CSS
+- **Frontend**: Next.js 16, React 19, Tailwind CSS 4
 - **Backend**: Python FastAPI
-- **Image Processing**: Google MediaPipe, OpenCV, scikit-learn
-- **Product Search**: Axesso API (via RapidAPI) with mock fallback
+- **Image Processing**: Google MediaPipe, OpenCV, scikit-learn (K-means)
+- **Auth**: Supabase (Google OAuth)
+- **Fonts**: Playfair Display (display headings) + DM Sans (body text)
 
 ## Getting Started
 
@@ -22,7 +25,6 @@ A web application that analyzes selfies to extract eye, hair, and skin colors, d
 
 - Node.js 18+ and npm
 - Python 3.11+
-- pip
 
 ### Installation
 
@@ -44,15 +46,18 @@ A web application that analyzes selfies to extract eye, hair, and skin colors, d
    ```bash
    cd frontend
    npm install
-   cp .env.local.example .env.local
    ```
 
 4. **Configure environment variables**
 
-   Edit `frontend/.env.local` and add your RapidAPI key (optional - uses mock data without it):
+   Create `frontend/.env.local`:
    ```
-   RAPIDAPI_KEY=your_rapidapi_key_here
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
+
+   The Supabase variables are required for the `/tryon` auth flow. The color analysis feature on the home page works without them.
 
 ### Running the Application
 
@@ -80,7 +85,7 @@ docker-compose up
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+- API Docs (Swagger): http://localhost:8000/docs
 
 ## Project Structure
 
@@ -88,33 +93,45 @@ docker-compose up
 clothing-project/
 ├── frontend/                 # Next.js application
 │   ├── src/
-│   │   ├── app/             # Pages and API routes
+│   │   ├── app/             # Pages (home, login, tryon, auth callback)
 │   │   ├── components/      # React components
-│   │   └── lib/             # Utilities and types
+│   │   └── lib/             # API client, types, Supabase clients
 │   └── package.json
 ├── backend/                  # FastAPI application
 │   ├── app/
 │   │   ├── main.py          # FastAPI entry point
-│   │   ├── routers/         # API endpoints
-│   │   ├── services/        # Business logic
-│   │   └── models/          # Pydantic schemas
+│   │   ├── routers/         # API endpoints (analyze)
+│   │   ├── services/        # Image analysis pipeline
+│   │   └── models/          # Pydantic schemas + TFLite model
 │   └── requirements.txt
+├── supabase/                 # Supabase config (migrations, functions)
 ├── docker-compose.yml
 └── README.md
 ```
 
-## API Endpoints
+## API
 
-### Backend (FastAPI)
+### `POST /api/analyze`
 
-- `POST /api/analyze` - Analyze an image and return color palette
-  - Body: `{ "image": "base64_encoded_image" }`
-  - Returns: Season, colors, palette, undertone, contrast
+Analyze a selfie and return a seasonal color palette.
 
-### Frontend (Next.js)
+**Request:**
+```json
+{ "image": "base64_encoded_image" }
+```
 
-- `GET /api/products?color=olive&category=shirt` - Search for products
-  - Uses Axesso API if key is configured, otherwise returns mock data
+**Response:**
+```json
+{
+  "colors": { "eyes": "#4A6741", "hair": "#3B2417", "skin": "#D4A574" },
+  "season": "autumn",
+  "season_description": "...",
+  "undertone": "warm",
+  "contrast": "high",
+  "palette": [{ "hex": "#8B4513", "name": "Saddle Brown" }, ...],
+  "debug_info": { "sample_points": [...], "image_width": 640, "image_height": 480 }
+}
+```
 
 ## Color Theory
 
