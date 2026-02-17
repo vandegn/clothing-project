@@ -1,3 +1,3 @@
-from app.routers import analyze
+from app.routers import analyze, tryon
 
-__all__ = ["analyze"]
+__all__ = ["analyze", "tryon"]

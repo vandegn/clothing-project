@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import TryOnContent from './TryOnContent'
 
-export default async function TryOnPage() {
+interface TryOnPageProps {
+  searchParams: Promise<{ payment?: string }>
+}
+
+export default async function TryOnPage({ searchParams }: TryOnPageProps) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -10,5 +14,6 @@ export default async function TryOnPage() {
     redirect('/login')
   }
 
-  return <TryOnContent user={user} />
+  const params = await searchParams
+  return <TryOnContent user={user} paymentStatus={params.payment} />
 }

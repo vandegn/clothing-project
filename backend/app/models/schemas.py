@@ -43,3 +43,31 @@ class AnalyzeResponse(BaseModel):
     undertone: str  # warm or cool
     contrast: str  # low, medium, or high
     debug_info: Optional[DebugInfo] = None  # Debug sample points
+
+
+class CheckoutRequest(BaseModel):
+    package_id: str
+    user_id: str
+    success_url: str
+    cancel_url: str
+
+
+class CheckoutResponse(BaseModel):
+    checkout_url: str
+
+
+class CreditsResponse(BaseModel):
+    credits: int
+
+
+class TryOnSubmitRequest(BaseModel):
+    user_id: str
+    body_image: str  # base64
+    clothing_image: str  # base64
+
+
+class TryOnSubmitResponse(BaseModel):
+    success: bool
+    message: str
+    credits_remaining: int
+    result_image: Optional[str] = None  # base64 PNG from OpenAI

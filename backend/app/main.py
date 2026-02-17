@@ -1,6 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import analyze
+from app.routers import analyze, tryon
 
 app = FastAPI(
     title="Color Palette Analyzer API",
@@ -19,6 +22,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(analyze.router, prefix="/api", tags=["analyze"])
+app.include_router(tryon.router, prefix="/api", tags=["tryon"])
 
 
 @app.get("/")
