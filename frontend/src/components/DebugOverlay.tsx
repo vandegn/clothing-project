@@ -159,7 +159,9 @@ export default function DebugOverlay({ imageUrl, debugInfo, colors }: DebugOverl
                 className="w-5 h-5 rounded-full ring-2 shadow-sm"
                 style={{
                   backgroundColor: extractedColor,
-                  ringColor: style.color,
+                  outlineColor: style.color,
+                  outlineStyle: 'solid',
+                  outlineWidth: '2px',
                 }}
               />
               <span className="text-sm font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)] capitalize">
