@@ -86,7 +86,14 @@ async def stripe_webhook(request: Request):
         print("[stripe webhook] signature verification failed")
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    print(f"[stripe webhook] event type: {event['type']}")
+    event_id = event.get("id", "")
+    print(f"[stripe webhook] event type: {event['type']}, id: {event_id}")
+
+    existing = credits_service.client.table("processed_stripe_events").select("event_id").eq("event_id", event_id).execute()
+    if existing.data:
+        print(f"[stripe webhook] duplicate event {event_id}, skipping")
+        return {"received": True}
+
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
         metadata = session.get("metadata", {})
@@ -96,5 +103,7 @@ async def stripe_webhook(request: Request):
         if user_id and credits_str:
             new_balance = credits_service.add_credits(user_id, int(credits_str))
             print(f"[stripe webhook] credits added, new balance: {new_balance}")
+
+    credits_service.client.table("processed_stripe_events").insert({"event_id": event_id}).execute()
 
     return {"received": True}
