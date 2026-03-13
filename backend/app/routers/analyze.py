@@ -71,5 +71,7 @@ async def analyze_image(request: AnalyzeRequest):
 
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    except (base64.binascii.Error, ValueError):
+        raise HTTPException(status_code=400, detail="Invalid image data. Please provide a valid base64-encoded image.")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Analysis failed. Please try again with a different image.")
