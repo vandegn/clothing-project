@@ -4,11 +4,10 @@ import { useEffect, useState } from 'react'
 import { getPackages, createCheckoutSession, type CreditPackage } from '@/lib/tryon-api'
 
 interface PurchaseCreditsModalProps {
-  userId: string
   onClose: () => void
 }
 
-export default function PurchaseCreditsModal({ userId, onClose }: PurchaseCreditsModalProps) {
+export default function PurchaseCreditsModal({ onClose }: PurchaseCreditsModalProps) {
   const [packages, setPackages] = useState<CreditPackage[]>([])
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState<string | null>(null)
@@ -23,7 +22,7 @@ export default function PurchaseCreditsModal({ userId, onClose }: PurchaseCredit
   const handlePurchase = async (pkg: CreditPackage) => {
     setPurchasing(pkg.id)
     try {
-      const url = await createCheckoutSession(pkg.id, userId)
+      const url = await createCheckoutSession(pkg.id)
       window.location.href = url
     } catch {
       setPurchasing(null)

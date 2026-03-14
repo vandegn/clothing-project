@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional, Tuple
+
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # ~10MB base64
 
 
 class SamplePoint(BaseModel):
@@ -33,6 +35,13 @@ class AnalyzeRequest(BaseModel):
     """Request body for image analysis"""
     image: str  # Base64 encoded image
 
+    @field_validator("image")
+    @classmethod
+    def check_image_size(cls, v):
+        if len(v) > MAX_IMAGE_SIZE:
+            raise ValueError("Image too large (max 10MB)")
+        return v
+
 
 class AnalyzeResponse(BaseModel):
     """Response from image analysis"""
@@ -47,7 +56,6 @@ class AnalyzeResponse(BaseModel):
 
 class CheckoutRequest(BaseModel):
     package_id: str
-    user_id: str
     success_url: str
     cancel_url: str
 
@@ -61,9 +69,15 @@ class CreditsResponse(BaseModel):
 
 
 class TryOnSubmitRequest(BaseModel):
-    user_id: str
     body_image: str  # base64
     clothing_image: str  # base64
+
+    @field_validator("body_image", "clothing_image")
+    @classmethod
+    def check_image_size(cls, v):
+        if len(v) > MAX_IMAGE_SIZE:
+            raise ValueError("Image too large (max 10MB)")
+        return v
 
 
 class TryOnSubmitResponse(BaseModel):

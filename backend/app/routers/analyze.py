@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import numpy as np
 from fastapi import APIRouter, HTTPException
@@ -21,6 +22,27 @@ color_theory = ColorTheoryAnalyzer()
 palette_generator = PaletteGenerator()
 
 
+def _run_analysis(image_data: bytes):
+    """Synchronous analysis pipeline — runs in a thread pool executor."""
+    image = Image.open(io.BytesIO(image_data))
+
+    if image.mode != 'RGB':
+        image = image.convert('RGB')
+
+    image_array = np.array(image)
+
+    landmarks = face_analyzer.detect_landmarks(image_array)
+    if landmarks is None:
+        raise ValueError("NO_FACE")
+
+    segmentation = image_segmenter.segment(image_array)
+    colors, debug_info = color_extractor.extract_colors(image_array, landmarks, segmentation)
+    analysis = color_theory.analyze(colors)
+    palette = palette_generator.generate(analysis["season"])
+
+    return colors, analysis, palette, debug_info
+
+
 @router.post("/analyze", response_model=AnalyzeResponse)
 async def analyze_image(request: AnalyzeRequest):
     """
@@ -31,33 +53,12 @@ async def analyze_image(request: AnalyzeRequest):
     - Generates a 16-color palette suited to the user
     """
     try:
-        # Decode base64 image
         image_data = base64.b64decode(request.image)
-        image = Image.open(io.BytesIO(image_data))
 
-        # Convert to RGB if necessary
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-
-        # Convert to numpy array for OpenCV
-        image_array = np.array(image)
-
-        # Step 1: Detect face landmarks (for eye color extraction)
-        landmarks = face_analyzer.detect_landmarks(image_array)
-        if landmarks is None:
-            raise HTTPException(status_code=400, detail="No face detected in the image")
-
-        # Step 2: Run segmentation (for hair and skin color extraction)
-        segmentation = image_segmenter.segment(image_array)
-
-        # Step 3: Extract colors using landmarks (eyes) and segmentation (hair/skin)
-        colors, debug_info = color_extractor.extract_colors(image_array, landmarks, segmentation)
-
-        # Step 4: Analyze colors to determine season
-        analysis = color_theory.analyze(colors)
-
-        # Step 5: Generate palette based on season
-        palette = palette_generator.generate(analysis["season"])
+        loop = asyncio.get_event_loop()
+        colors, analysis, palette, debug_info = await loop.run_in_executor(
+            None, _run_analysis, image_data
+        )
 
         return AnalyzeResponse(
             colors=colors,
@@ -69,9 +70,13 @@ async def analyze_image(request: AnalyzeRequest):
             debug_info=debug_info
         )
 
+    except ValueError as e:
+        if str(e) == "NO_FACE":
+            raise HTTPException(status_code=400, detail="No face detected in the image")
+        raise HTTPException(status_code=400, detail="Invalid image data. Please provide a valid base64-encoded image.")
     except HTTPException:
         raise
-    except (base64.binascii.Error, ValueError):
+    except (base64.binascii.Error,):
         raise HTTPException(status_code=400, detail="Invalid image data. Please provide a valid base64-encoded image.")
     except Exception:
         raise HTTPException(status_code=500, detail="Analysis failed. Please try again with a different image.")

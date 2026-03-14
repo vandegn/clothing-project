@@ -23,19 +23,17 @@ class CreditsService:
         return result.data["credits"]
 
     def add_credits(self, user_id: str, amount: int) -> int:
-        current = self.get_credits(user_id)
-        new_balance = current + amount
-        self.client.table("profiles").update(
-            {"credits": new_balance}
-        ).eq("id", user_id).execute()
-        return new_balance
+        result = self.client.rpc(
+            "add_credits", {"p_user_id": user_id, "p_amount": amount}
+        ).execute()
+        if not result.data:
+            raise Exception("User not found")
+        return result.data
 
     def deduct_credit(self, user_id: str) -> int:
-        current = self.get_credits(user_id)
-        if current < 1:
+        result = self.client.rpc(
+            "deduct_credit", {"p_user_id": user_id}
+        ).execute()
+        if not result.data:
             raise InsufficientCreditsError("Not enough credits")
-        new_balance = current - 1
-        self.client.table("profiles").update(
-            {"credits": new_balance}
-        ).eq("id", user_id).execute()
-        return new_balance
+        return result.data

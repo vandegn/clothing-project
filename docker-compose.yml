@@ -11,10 +11,6 @@ services:
       - NEXT_PUBLIC_BACKEND_URL=http://backend:8000
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
 
   backend:
     build:
@@ -24,5 +20,3 @@ services:
       - "8000:8000"
     environment:
       - CORS_ORIGINS=http://localhost:3000
-    volumes:
-      - ./backend:/app

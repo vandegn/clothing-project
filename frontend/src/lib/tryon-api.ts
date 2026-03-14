@@ -1,5 +1,23 @@
+import { createClient } from "./supabase";
+
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+async function getAccessToken(): Promise<string> {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("Not authenticated");
+  return session.access_token;
+}
+
+function authHeaders(token: string): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 export interface CreditPackage {
   id: string;
@@ -14,16 +32,25 @@ export async function getPackages(): Promise<Record<string, CreditPackage>> {
   return res.json();
 }
 
+export async function getCredits(): Promise<number> {
+  const token = await getAccessToken();
+  const res = await fetch(`${BACKEND_URL}/api/tryon/credits`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Failed to fetch credits");
+  const data = await res.json();
+  return data.credits;
+}
+
 export async function createCheckoutSession(
-  packageId: string,
-  userId: string
+  packageId: string
 ): Promise<string> {
+  const token = await getAccessToken();
   const res = await fetch(`${BACKEND_URL}/api/tryon/checkout`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(token),
     body: JSON.stringify({
       package_id: packageId,
-      user_id: userId,
       success_url: `${window.location.origin}/tryon?payment=success`,
       cancel_url: `${window.location.origin}/tryon?payment=cancelled`,
     }),
@@ -37,23 +64,22 @@ export interface TryOnResult {
   success: boolean;
   message: string;
   credits_remaining: number;
-  result_image?: string; // base64 PNG from OpenAI
+  result_image?: string; // base64 PNG
 }
 
 export async function submitTryOn(
-  userId: string,
   bodyImage: string,
   clothingImage: string
 ): Promise<TryOnResult> {
+  const token = await getAccessToken();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 120_000); // 2 min
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/tryon/submit`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(token),
       body: JSON.stringify({
-        user_id: userId,
         body_image: bodyImage,
         clothing_image: clothingImage,
       }),

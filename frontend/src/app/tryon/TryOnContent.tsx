@@ -143,7 +143,7 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
     setResultImage(null)
 
     try {
-      const res = await submitTryOn(user.id, bodyImage!, clothingImage!)
+      const res = await submitTryOn(bodyImage!, clothingImage!)
       setResult(res.message)
       setResultImage(res.result_image || null)
       setCredits(res.credits_remaining)
@@ -577,7 +577,6 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
       {/* Purchase Credits Modal */}
       {showModal && (
         <PurchaseCreditsModal
-          userId={user.id}
           onClose={() => setShowModal(false)}
         />
       )}
