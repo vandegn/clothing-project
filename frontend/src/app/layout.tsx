@@ -16,7 +16,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Chromatic — Discover Your Color Season",
+  title: "TrueColor — Discover Your Color Season",
   description: "Unlock your perfect color palette. AI-powered seasonal color analysis for a wardrobe that truly flatters.",
 };
 
