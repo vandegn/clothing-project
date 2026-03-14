@@ -2,6 +2,17 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Maintenance mode: toggle via NEXT_PUBLIC_MAINTENANCE=true in Vercel env vars
+  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE === 'true'
+  const isMaintenancePage = request.nextUrl.pathname === '/maintenance'
+
+  if (isMaintenanceMode && !isMaintenancePage) {
+    return NextResponse.rewrite(new URL('/maintenance', request.url))
+  }
+  if (!isMaintenanceMode && isMaintenancePage) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
