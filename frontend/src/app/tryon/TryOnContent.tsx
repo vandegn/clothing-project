@@ -437,13 +437,11 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
               {/* Hero result image — right column */}
               <div className="col-span-2">
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-[var(--color-charcoal)]/10 ring-2 ring-[var(--color-sage)]/30">
-                  <div className="aspect-square">
-                    <img
-                      src={`data:image/png;base64,${resultImage}`}
-                      alt="Virtual try-on result"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img
+                    src={`data:image/png;base64,${resultImage}`}
+                    alt="Virtual try-on result"
+                    className="w-full h-auto"
+                  />
                   {/* Subtle gradient overlay at top */}
                   <div className="absolute top-0 inset-x-0 p-3 bg-gradient-to-b from-black/30 to-transparent flex justify-end">
                     <div className="px-2 py-1 rounded-full bg-[var(--color-sage)]/80 backdrop-blur-sm">

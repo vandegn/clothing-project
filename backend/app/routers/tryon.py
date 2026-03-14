@@ -57,13 +57,13 @@ async def submit_tryon(body: TryOnSubmitRequest):
     except Exception:
         raise HTTPException(status_code=404, detail="User not found or credit check failed")
 
-    # Call OpenAI — refund on failure
+    # Call Gemini — refund on failure
     try:
-        print("[tryon] calling OpenAI gpt-image-1-mini...")
+        print("[tryon] calling Gemini 2.5 Flash (Nano Banana)...")
         result_image = tryon_ai.generate_tryon(body.body_image, body.clothing_image)
         print("[tryon] image generated successfully")
     except Exception as e:
-        print(f"[tryon] OpenAI failed: {e}")
+        print(f"[tryon] Gemini failed: {e}")
         credits_service.add_credits(body.user_id, 1)
         raise HTTPException(
             status_code=500,
