@@ -48,7 +48,7 @@ export default function Home() {
             </div>
             <div className="hidden sm:block">
               <h1 className="font-display text-xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
-                Chromatic
+                TrueColor
               </h1>
               <p className="text-xs text-[var(--color-stone)]">Color Analysis</p>
             </div>
