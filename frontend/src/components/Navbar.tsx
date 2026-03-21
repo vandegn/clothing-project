@@ -19,7 +19,7 @@ export default function Navbar() {
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50">
       <div
-        className="flex items-center gap-1.5 p-1.5 rounded-full glass border border-[var(--color-stone-light)]/20"
+        className="flex items-center gap-1.5 p-1.5 rounded-full bg-white dark:bg-[#1a1918] border border-[var(--color-stone-light)]/20"
         style={{
           boxShadow:
             'inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.08)',

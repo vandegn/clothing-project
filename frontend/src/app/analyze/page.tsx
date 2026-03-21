@@ -20,6 +20,20 @@ export default function AnalyzePage() {
     if (hasStarted.current) return;
     hasStarted.current = true;
 
+    // Check for cached results first (allows navigating back)
+    const cachedResult = sessionStorage.getItem("analyzeResult");
+    const cachedImage = sessionStorage.getItem("analyzeCachedImage");
+    const cachedGender = sessionStorage.getItem("analyzeCachedGender") as Gender | null;
+
+    if (cachedResult && cachedImage) {
+      setResult(JSON.parse(cachedResult));
+      setUploadedImage(cachedImage);
+      if (cachedGender) setGender(cachedGender);
+      setIsAnalyzing(false);
+      return;
+    }
+
+    // Otherwise, run a new analysis
     const image = sessionStorage.getItem("analyzeImage");
     const storedGender = sessionStorage.getItem("analyzeGender") as Gender | null;
 
@@ -38,6 +52,10 @@ export default function AnalyzePage() {
       try {
         const analysisResult = await analyzeImage(image);
         setResult(analysisResult);
+        // Cache results so user can navigate back
+        sessionStorage.setItem("analyzeResult", JSON.stringify(analysisResult));
+        sessionStorage.setItem("analyzeCachedImage", image);
+        if (storedGender) sessionStorage.setItem("analyzeCachedGender", storedGender);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Analysis failed. Please try again.");
       } finally {
@@ -49,6 +67,9 @@ export default function AnalyzePage() {
   }, [router]);
 
   const handleReset = () => {
+    sessionStorage.removeItem("analyzeResult");
+    sessionStorage.removeItem("analyzeCachedImage");
+    sessionStorage.removeItem("analyzeCachedGender");
     router.push("/");
   };
 

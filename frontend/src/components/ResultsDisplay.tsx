@@ -21,8 +21,8 @@ export default function ResultsDisplay({ result, onReset, uploadedImage, gender 
     <div className="space-y-8 animate-fade-in">
       {/* Header with back button */}
       <div className="flex items-center justify-between mb-8">
-        <button
-          onClick={onReset}
+        <a
+          href="/"
           className="group flex items-center gap-2 text-[var(--color-stone)] hover:text-[var(--color-charcoal)] dark:hover:text-[var(--color-cream)] transition-colors"
         >
           <svg
@@ -34,7 +34,7 @@ export default function ResultsDisplay({ result, onReset, uploadedImage, gender 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           <span className="text-sm font-medium">Analyze Another Photo</span>
-        </button>
+        </a>
 
         {/* Debug toggle */}
         {uploadedImage && result.debug_info && (
