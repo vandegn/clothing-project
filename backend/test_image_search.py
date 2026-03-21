@@ -1,11 +1,11 @@
 """
-Test script: Single Google Custom Search API image query.
-Fetches the first product image for one color/gender/category combo.
+Test script: Serper.dev Google Image Search query.
+Fetches 3 product images per color/gender/category combo using different query styles.
 
 Usage:
   python test_image_search.py
 
-Requires GOOGLE_API_KEY and GOOGLE_CSE_ID in backend/.env
+Requires SERPER_API_KEY in backend/.env
 """
 
 import os
@@ -14,63 +14,64 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "YOUR_GOOGLE_API_KEY_HERE")
-CSE_ID = os.getenv("GOOGLE_CSE_ID", "f13b4900822b844f9")
+API_KEY = os.getenv("SERPER_API_KEY", "YOUR_SERPER_API_KEY_HERE")
 
 # Test with one specific combo
 COLOR = "Coral"
 GENDER = "Womens"
 CATEGORY = "Top"
 
-query = f"{GENDER} {COLOR} color {CATEGORY}"
-print(f"Query: {query}")
+# Three different query styles for variety
+queries = [
+    f"{GENDER} {COLOR} {CATEGORY} product photo no model front view",
+    f"{GENDER} {COLOR} {CATEGORY} flat lay",
+    f"{GENDER} {COLOR} {CATEGORY} flat lay no model",
+]
 
-# Google Custom Search API - image search
-url = "https://www.googleapis.com/customsearch/v1"
-params = {
-    "key": API_KEY,
-    "cx": CSE_ID,
-    "q": query,
-    "searchType": "image",
-    "num": 1,
-    "imgType": "photo",
-    "safe": "active",
+url = "https://google.serper.dev/images"
+headers = {
+    "X-API-KEY": API_KEY,
+    "Content-Type": "application/json",
 }
 
-response = requests.get(url, params=params)
-print(f"Status: {response.status_code}")
+folder = f"test_images/{GENDER}_{COLOR}_{CATEGORY}"
+os.makedirs(folder, exist_ok=True)
 
-if response.status_code != 200:
-    print(f"Error: {response.text}")
-    exit(1)
+for i, query in enumerate(queries):
+    print(f"\n[{i+1}] Query: {query}")
 
-data = response.json()
+    response = requests.post(url, headers=headers, json={"q": query, "num": 1})
 
-if "items" not in data or len(data["items"]) == 0:
-    print("No results found.")
-    exit(1)
+    if response.status_code != 200:
+        print(f"    Error: {response.text}")
+        continue
 
-item = data["items"][0]
-image_url = item["link"]
-title = item.get("title", "Unknown")
-source = item.get("displayLink", "Unknown")
+    data = response.json()
+    if "images" not in data or len(data["images"]) == 0:
+        print("    No results found.")
+        continue
 
-print(f"Title: {title}")
-print(f"Source: {source}")
-print(f"Image URL: {image_url}")
+    item = data["images"][0]
+    image_url = item.get("imageUrl", "")
+    title = item.get("title", "Unknown")
+    source = item.get("source", "Unknown")
 
-# Download the image
-os.makedirs("test_images", exist_ok=True)
-filename = f"test_images/{GENDER}_{COLOR}_{CATEGORY}.jpg"
+    print(f"    Title: {title}")
+    print(f"    Source: {source}")
+    print(f"    URL: {image_url}")
 
-img_response = requests.get(image_url, timeout=10, headers={
-    "User-Agent": "Mozilla/5.0"
-})
+    filename = f"{folder}/{i+1}.jpg"
 
-if img_response.status_code == 200:
-    with open(filename, "wb") as f:
-        f.write(img_response.content)
-    size_kb = len(img_response.content) / 1024
-    print(f"Saved: {filename} ({size_kb:.1f} KB)")
-else:
-    print(f"Failed to download image: {img_response.status_code}")
+    try:
+        img_response = requests.get(image_url, timeout=10, headers={
+            "User-Agent": "Mozilla/5.0"
+        })
+        if img_response.status_code == 200:
+            with open(filename, "wb") as f:
+                f.write(img_response.content)
+            size_kb = len(img_response.content) / 1024
+            print(f"    Saved: {filename} ({size_kb:.1f} KB)")
+        else:
+            print(f"    Failed to download: HTTP {img_response.status_code}")
+    except Exception as e:
+        print(f"    Failed to download: {e}")

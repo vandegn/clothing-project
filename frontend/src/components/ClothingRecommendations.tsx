@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ColorPalette, Gender } from "@/lib/types";
 import { getAmazonSearchUrl } from "@/lib/api";
 
@@ -10,8 +10,46 @@ interface ClothingRecommendationsProps {
   gender: Gender;
 }
 
+function getClothingImagePath(gender: Gender, colorName: string, category: "tops" | "bottoms"): string {
+  const genderLabel = gender === "female" ? "Womens" : "Mens";
+  const safeName = colorName.replace(/\s+/g, "_");
+  const cat = category === "tops" ? "Top" : "Bottom";
+  return `/clothing-images/${genderLabel}_${safeName}_${cat}.jpg`;
+}
+
 export default function ClothingRecommendations({ palette, gender }: ClothingRecommendationsProps) {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<"tops" | "bottoms">("tops");
+  const [tryOnModal, setTryOnModal] = useState<{ color: ColorPalette; imagePath: string; category: "tops" | "bottoms" } | null>(null);
+
+  const handleCardClick = (color: ColorPalette) => {
+    const imagePath = getClothingImagePath(gender, color.name, selectedCategory);
+    setTryOnModal({ color, imagePath, category: selectedCategory });
+  };
+
+  const handleTryOn = async () => {
+    if (!tryOnModal) return;
+
+    // Fetch the image and convert to base64 data URL for the try-on page
+    try {
+      const res = await fetch(tryOnModal.imagePath);
+      const blob = await res.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        sessionStorage.setItem("tryOnClothingImage", base64);
+        sessionStorage.setItem("tryOnClothingType", tryOnModal.category === "tops" ? "top" : "bottom");
+        setTryOnModal(null);
+        router.push("/tryon");
+      };
+      reader.readAsDataURL(blob);
+    } catch {
+      // If image fetch fails, still pass clothing type and navigate
+      sessionStorage.setItem("tryOnClothingType", tryOnModal.category === "tops" ? "top" : "bottom");
+      setTryOnModal(null);
+      router.push("/tryon");
+    }
+  };
 
   return (
     <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-[var(--color-charcoal-soft)]/40 backdrop-blur-sm border border-[var(--color-stone-light)]/20 p-8 animate-fade-up delay-400">
@@ -28,7 +66,7 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
             Wardrobe Recommendations
           </h3>
           <p className="text-sm text-[var(--color-stone)] mt-1">
-            Find clothing in your perfect colors on Amazon
+            Click a color to try it on virtually or shop on Amazon
           </p>
         </div>
 
@@ -54,78 +92,147 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
 
       {/* Color cards grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {palette.map((color, index) => (
-          <a
-            key={index}
-            href={getAmazonSearchUrl(color.name, selectedCategory, gender)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
-          >
-            {/* Color background */}
+        {palette.map((color, index) => {
+          const imagePath = getClothingImagePath(gender, color.name, selectedCategory);
+          return (
             <div
-              className="aspect-[4/3] w-full"
-              style={{ backgroundColor: color.hex }}
-            />
+              key={index}
+              className="group relative overflow-hidden rounded-2xl transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+              onClick={() => handleCardClick(color)}
+            >
+              {/* Color background (fallback) */}
+              <div
+                className="aspect-[4/3] w-full relative"
+                style={{ backgroundColor: color.hex }}
+              >
+                {/* Clothing image overlay */}
+                <img
+                  src={imagePath}
+                  alt={`${color.name} ${selectedCategory}`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => {
+                    // Hide image on error, showing color background
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
 
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            {/* Content overlay */}
-            <div className="absolute inset-x-0 bottom-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-              <p className="text-white text-sm font-medium truncate">
-                {color.name}
-              </p>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="text-white/70 text-xs">Shop on Amazon</span>
-                <svg
-                  className="w-3 h-3 text-white/70"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
+              {/* Content overlay */}
+              <div className="absolute inset-x-0 bottom-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                <p className="text-white text-sm font-medium truncate">
+                  {color.name}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-white/70 text-xs">Click to try on</span>
+                </div>
+              </div>
+
+              {/* Static label */}
+              <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/90 dark:bg-black/70 backdrop-blur-sm opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                <span className="text-xs font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
+                  {color.name}
+                </span>
               </div>
             </div>
-
-            {/* Static label */}
-            <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/90 dark:bg-black/70 backdrop-blur-sm opacity-100 group-hover:opacity-0 transition-opacity duration-300">
-              <span className="text-xs font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
-                {color.name}
-              </span>
-            </div>
-          </a>
-        ))}
+          );
+        })}
       </div>
 
       {/* Footer */}
       <div className="mt-6 pt-6 border-t border-[var(--color-stone-light)]/20">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[var(--color-stone-light)]">
-            Links open Amazon search results for {selectedCategory} in your recommended colors
+            Click any color to try it on virtually
           </p>
 
-          {/* Virtual Try-On CTA */}
-          <Link
-            href="/tryon"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--color-sage)] text-white text-sm font-medium hover:bg-[var(--color-sage)]/90 transition-all duration-300 shadow-lg shadow-[var(--color-sage)]/20 hover:shadow-xl hover:shadow-[var(--color-sage)]/30 group"
+          {/* Amazon link */}
+          <a
+            href={getAmazonSearchUrl(palette[0]?.name || "", selectedCategory, gender)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-[var(--color-charcoal-soft)]/40 border border-[var(--color-stone-light)]/20 text-sm font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)] hover:bg-white/80 transition-all duration-300"
           >
-            <svg className="w-4 h-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <span>Shop on Amazon</span>
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
             </svg>
-            Virtual Try-On
-            <svg className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          </a>
         </div>
       </div>
+
+      {/* Try-On Confirmation Modal */}
+      {tryOnModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in"
+            onClick={() => setTryOnModal(null)}
+          />
+
+          {/* Modal card */}
+          <div className="relative w-full max-w-sm rounded-3xl bg-white/90 dark:bg-[#1A1918]/90 backdrop-blur-xl border border-[var(--color-stone-light)]/20 shadow-2xl shadow-black/10 p-8 animate-scale-in">
+            {/* Preview image */}
+            <div className="relative rounded-2xl overflow-hidden mb-6 bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal-soft)]" style={{ backgroundColor: tryOnModal.color.hex }}>
+              <div className="aspect-[4/3]">
+                <img
+                  src={tryOnModal.imagePath}
+                  alt={tryOnModal.color.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+            </div>
+
+            <h3 className="font-display text-xl text-center text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-2">
+              Try this on?
+            </h3>
+            <p className="text-sm text-[var(--color-stone)] text-center mb-6">
+              <span className="font-medium text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">{tryOnModal.color.name}</span> {tryOnModal.category === "tops" ? "top" : "bottom"} will be loaded into the virtual try-on
+            </p>
+
+            {/* Action buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setTryOnModal(null)}
+                className="flex-1 px-5 py-3 rounded-full border border-[var(--color-stone-light)]/30 text-sm font-medium text-[var(--color-stone)] hover:text-[var(--color-charcoal)] hover:border-[var(--color-stone-light)]/60 transition-all duration-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTryOn}
+                className="flex-1 px-5 py-3 rounded-full bg-gradient-to-r from-[var(--color-sage)] to-[var(--color-sage)]/80 text-white text-sm font-medium hover:shadow-lg hover:shadow-[var(--color-sage)]/20 transition-all duration-300"
+              >
+                Try It On
+              </button>
+            </div>
+
+            {/* Amazon fallback link */}
+            <a
+              href={getAmazonSearchUrl(tryOnModal.color.name, tryOnModal.category, gender)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-xs text-[var(--color-stone)] hover:text-[var(--color-terracotta)] mt-4 transition-colors"
+            >
+              Or shop this color on Amazon →
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

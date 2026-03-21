@@ -9,7 +9,7 @@ class TryOnService:
     def __init__(self):
         self.client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
-    def generate_tryon(self, body_image_b64: str, clothing_image_b64: str) -> str:
+    def generate_tryon(self, body_image_b64: str, clothing_image_b64: str, clothing_type: str = "top") -> str:
         """Generate a virtual try-on image using Gemini 2.5 Flash (Nano Banana).
 
         Returns base64-encoded PNG image data (no data URL prefix).
@@ -17,12 +17,24 @@ class TryOnService:
         body_img = self._b64_to_pil(body_image_b64)
         clothing_img = self._b64_to_pil(clothing_image_b64)
 
+        if clothing_type == "bottom":
+            change_instruction = (
+                "Only change the person's bottom clothing (pants, skirt, shorts, etc.) "
+                "to match the clothing item in the second image. "
+                "Keep their top/upper body clothing exactly as it is."
+            )
+        else:
+            change_instruction = (
+                "Only change the person's top/upper body clothing "
+                "to match the clothing item in the second image. "
+                "Keep their bottom clothing (pants, skirt, shorts, etc.) exactly as it is."
+            )
+
         prompt = (
             "Generate a realistic photo of the person from the first image "
-            "wearing the clothing shown in the second image. "
+            f"wearing the clothing shown in the second image. {change_instruction} "
             "Preserve the person's exact physical features including body shape, "
-            "facial features, skin tone, and hair. Only change their outfit to "
-            "match the clothing item in the second image. The result should look "
+            "facial features, skin tone, and hair. The result should look "
             "natural and photorealistic, as if the person is actually wearing "
             "the new clothing. Maintain the same pose and background."
         )

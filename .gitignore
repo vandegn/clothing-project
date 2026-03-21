@@ -37,7 +37,7 @@ npm-debug.log*
 coverage/
 .pytest_cache/
 promptfoo/
-
+frontend/public/
 # Temp files
 tmpclaude-*
 *.tmp

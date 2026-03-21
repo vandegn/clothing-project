@@ -69,7 +69,8 @@ export interface TryOnResult {
 
 export async function submitTryOn(
   bodyImage: string,
-  clothingImage: string
+  clothingImage: string,
+  clothingType: string = "top"
 ): Promise<TryOnResult> {
   const token = await getAccessToken();
   const controller = new AbortController();
@@ -82,6 +83,7 @@ export async function submitTryOn(
       body: JSON.stringify({
         body_image: bodyImage,
         clothing_image: clothingImage,
+        clothing_type: clothingType,
       }),
       signal: controller.signal,
     });

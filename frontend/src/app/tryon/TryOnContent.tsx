@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase'
 import { submitTryOn } from '@/lib/tryon-api'
 import { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import TryOnUploader from '@/components/TryOnUploader'
 import PurchaseCreditsModal from '@/components/PurchaseCreditsModal'
 
@@ -40,6 +39,9 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
   const [dontShowAgain, setDontShowAgain] = useState(false)
   const [skipWarning, setSkipWarning] = useState(false)
 
+  // Clothing type for prompt
+  const [clothingType, setClothingType] = useState<string>("top")
+
   // Processing animation
   const [processingStep, setProcessingStep] = useState(0)
 
@@ -55,6 +57,18 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
   useEffect(() => {
     fetchCredits()
     setSkipWarning(localStorage.getItem('chromatic_skip_warning') === 'true')
+
+    // Check for clothing image passed from results page
+    const storedClothing = sessionStorage.getItem('tryOnClothingImage')
+    const storedType = sessionStorage.getItem('tryOnClothingType')
+    if (storedClothing) {
+      setClothingImage(storedClothing)
+      sessionStorage.removeItem('tryOnClothingImage')
+    }
+    if (storedType) {
+      setClothingType(storedType)
+      sessionStorage.removeItem('tryOnClothingType')
+    }
   }, [])
 
   // Re-fetch credits after returning from Stripe
@@ -143,7 +157,7 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
     setResultImage(null)
 
     try {
-      const res = await submitTryOn(bodyImage!, clothingImage!)
+      const res = await submitTryOn(bodyImage!, clothingImage!, clothingType)
       setResult(res.message)
       setResultImage(res.result_image || null)
       setCredits(res.credits_remaining)
@@ -174,6 +188,7 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
     setResultImage(null)
     setBodyImage(null)
     setClothingImage(null)
+    setClothingType("top")
   }
 
   return (
@@ -187,28 +202,17 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
       <div className="absolute top-60 right-[20%] w-2 h-2 rounded-full bg-[var(--color-terracotta)] animate-float delay-300 opacity-50" />
       <div className="absolute top-80 left-[25%] w-4 h-4 rounded-full bg-[var(--color-blush)] animate-float delay-500 opacity-40" />
 
-      {/* Header */}
-      <header className="relative z-20 glass border-b border-[var(--color-stone-light)]/20">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-terracotta)] to-[var(--color-terracotta-dark)] flex items-center justify-center shadow-lg shadow-[var(--color-terracotta)]/20 group-hover:shadow-xl group-hover:shadow-[var(--color-terracotta)]/30 transition-all duration-300">
-              <span className="text-white font-display text-lg font-medium">C</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-display text-xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
-                TrueColor
-              </h1>
-              <p className="text-xs text-[var(--color-stone)]">Virtual Try-On</p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/50 dark:bg-[var(--color-charcoal-soft)]/50 border border-[var(--color-stone-light)]/20">
+      {/* Main Content */}
+      <main className="relative z-10 max-w-6xl mx-auto px-6 pt-24 pb-16">
+        {/* User info */}
+        <div className="flex justify-end mb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/50 dark:bg-[var(--color-charcoal-soft)]/50 border border-[var(--color-stone-light)]/20">
               {user.user_metadata?.avatar_url && (
                 <img
                   src={user.user_metadata.avatar_url}
                   alt="Profile"
-                  className="w-7 h-7 rounded-full ring-2 ring-[var(--color-terracotta)]/20"
+                  className="w-6 h-6 rounded-full ring-2 ring-[var(--color-terracotta)]/20"
                 />
               )}
               <span className="text-sm text-[var(--color-charcoal)] dark:text-[var(--color-cream)] font-medium hidden sm:inline">
@@ -223,10 +227,6 @@ export default function TryOnContent({ user, paymentStatus }: TryOnContentProps)
             </button>
           </div>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-16">
         {/* Page Header */}
         <div className="text-center mb-12 animate-on-load animate-fade-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal-soft)] mb-8">

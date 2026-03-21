@@ -110,7 +110,7 @@ class ColorNamer:
         (139, 69, 19): "Saddle Brown",
         (160, 82, 45): "Sienna",
         (210, 105, 30): "Chocolate",
-        (205, 133, 63): "Peru",
+        (255, 191, 0): "Amber",
         (244, 164, 96): "Sandy Brown",
         (222, 184, 135): "Burlywood",
         (210, 180, 140): "Tan",

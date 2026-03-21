@@ -71,6 +71,7 @@ class CreditsResponse(BaseModel):
 class TryOnSubmitRequest(BaseModel):
     body_image: str  # base64
     clothing_image: str  # base64
+    clothing_type: str = "top"  # "top" or "bottom"
 
     @field_validator("body_image", "clothing_image")
     @classmethod

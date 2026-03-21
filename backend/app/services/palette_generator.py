@@ -50,7 +50,7 @@ class PaletteGenerator:
         ],
         "autumn": [
             {"hex": "#8B4513", "name": "Saddle Brown"},
-            {"hex": "#CD853F", "name": "Peru"},
+            {"hex": "#FFBF00", "name": "Amber"},
             {"hex": "#D2691E", "name": "Chocolate"},
             {"hex": "#B8860B", "name": "Dark Goldenrod"},
             {"hex": "#808000", "name": "Olive"},

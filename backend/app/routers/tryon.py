@@ -73,7 +73,7 @@ async def submit_tryon(body: TryOnSubmitRequest, user_id: str = Depends(get_curr
     try:
         print("[tryon] calling Gemini 2.5 Flash (Nano Banana)...")
         result_image = await loop.run_in_executor(
-            None, tryon_ai.generate_tryon, body.body_image, body.clothing_image
+            None, tryon_ai.generate_tryon, body.body_image, body.clothing_image, body.clothing_type
         )
         print("[tryon] image generated successfully")
     except Exception as e:
