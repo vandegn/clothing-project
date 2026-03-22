@@ -82,7 +82,7 @@ class ColorTheoryAnalyzer:
         warmth_score = warmth_ratio + green_influence
 
         # Threshold for warm vs cool
-        return "warm" if warmth_score > 0.15 else "cool"
+        return "warm" if warmth_score > 0.22 else "cool"
 
     def _calculate_contrast(self, skin_rgb: Tuple[int, int, int],
                            hair_rgb: Tuple[int, int, int],
@@ -113,7 +113,7 @@ class ColorTheoryAnalyzer:
         contrast_score = lum_range / 255
 
         # Categorize contrast level
-        if contrast_score > 0.45:
+        if contrast_score > 0.40:
             return "high", contrast_score
         elif contrast_score > 0.25:
             return "medium", contrast_score

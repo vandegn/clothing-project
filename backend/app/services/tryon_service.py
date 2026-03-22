@@ -31,12 +31,14 @@ class TryOnService:
             )
 
         prompt = (
-            "Generate a realistic photo of the person from the first image "
+            "Generate a realistic full-body photo of the person from the first image "
             f"wearing the clothing shown in the second image. {change_instruction} "
+            "CRITICAL: The output image MUST have the EXACT same framing, composition, "
+            "and crop as the first image. Show the person's entire body from head to toe "
+            "exactly as they appear in the original photo — do NOT crop or zoom in. "
             "Preserve the person's exact physical features including body shape, "
             "facial features, skin tone, and hair. The result should look "
-            "natural and photorealistic, as if the person is actually wearing "
-            "the new clothing. Maintain the same pose and background."
+            "natural and photorealistic. Maintain the same pose, background, and lighting."
         )
 
         response = self.client.models.generate_content(
@@ -47,10 +49,16 @@ class TryOnService:
         for part in response.parts:
             if part.inline_data is not None:
                 raw = part.inline_data.data
-                # Gemini returns data already base64-encoded
+                # Decode the image data
                 if raw[:4] == b'iVBO':
-                    return raw.decode("utf-8")
-                return base64.b64encode(raw).decode("utf-8")
+                    img_bytes = base64.b64decode(raw)
+                else:
+                    img_bytes = raw
+
+                # Return the image as-is from Gemini — no resizing or cropping
+                if not isinstance(img_bytes, bytes):
+                    img_bytes = base64.b64decode(raw)
+                return base64.b64encode(img_bytes).decode("utf-8")
 
         raise RuntimeError("No image returned from Gemini")
 

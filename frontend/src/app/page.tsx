@@ -10,6 +10,11 @@ export default function Home() {
   const [gender, setGender] = useState<Gender>("female");
 
   const handleImageUpload = (base64Image: string) => {
+    // Clear any cached results from a previous analysis
+    sessionStorage.removeItem("analyzeResult");
+    sessionStorage.removeItem("analyzeCachedImage");
+    sessionStorage.removeItem("analyzeCachedGender");
+
     sessionStorage.setItem("analyzeImage", base64Image);
     sessionStorage.setItem("analyzeGender", gender);
     router.push("/analyze");
