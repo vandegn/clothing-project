@@ -96,21 +96,21 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 md:gap-4">
             {[
               {
-                number: "01",
+                number: "1",
                 title: "Upload",
                 subtitle: "Your Portrait",
                 description: "Share a photo with natural lighting, ensure eyes are open, and whole head fits in frame.",
                 accent: "var(--color-terracotta)"
               },
               {
-                number: "02",
+                number: "2",
                 title: "Analyze",
                 subtitle: "Your Features",
                 description: "We extract your unique eye, hair, and skin tones to determine your undertone and contrast level.",
                 accent: "var(--color-sage)"
               },
               {
-                number: "03",
+                number: "3",
                 title: "Discover",
                 subtitle: "Your Palette",
                 description: "Receive a curated 16-color palette tailored to your seasonal type, plus shopping recommendations.",
@@ -122,19 +122,21 @@ export default function Home() {
                 className="group relative p-8 rounded-3xl bg-white/60 dark:bg-[var(--color-charcoal-soft)]/40 backdrop-blur-sm border border-[var(--color-stone-light)]/20 hover:border-[var(--color-stone-light)]/40 transition-all duration-500 hover:shadow-xl hover:shadow-[var(--color-stone)]/5"
                 style={{ animationDelay: `${400 + index * 100}ms` }}
               >
-                {/* Step Number - Large Editorial Style */}
-                <div
-                  className="font-display text-7xl font-medium leading-none mb-6 transition-colors duration-300"
-                  style={{ color: step.accent }}
-                >
-                  {step.number}
-                </div>
-
-                {/* Title Group */}
-                <div className="mb-4">
-                  <h3 className="font-display text-2xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)] mb-1">
+                {/* Step Number + Title */}
+                <div className="flex items-baseline gap-4 mb-2">
+                  <div
+                    className="font-display text-6xl font-medium leading-none transition-colors duration-300"
+                    style={{ color: step.accent }}
+                  >
+                    {step.number}
+                  </div>
+                  <h3 className="font-display text-4xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
                     {step.title}
                   </h3>
+                </div>
+
+                {/* Subtitle */}
+                <div className="mb-4">
                   <p className="font-display text-lg italic text-[var(--color-stone)]">
                     {step.subtitle}
                   </p>
