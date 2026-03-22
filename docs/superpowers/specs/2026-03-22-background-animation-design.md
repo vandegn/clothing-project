@@ -40,7 +40,8 @@ All layers use `position: fixed; inset: 0; z-index: 0` to avoid layout recalcula
 **Perpetual drift animation (per-blob, infinite loop):**
 - Rotation: `[0, 3, -2, 0]` over 10-14s
 - Scale pulse: `[1, 1.05, 0.97, 1]` over 12-16s
-- Position wander: `x: [0, 20, -15, 0]`, `y: [0, -15, 10, 0]`
+- Horizontal wander: `x: [0, 20, -15, 0]`
+- Note: `y` drift is omitted because `style.y` is occupied by the scroll parallax `MotionValue`. Framer-motion gives `style` precedence over `animate` for the same property, so a separate `y` drift would be silently ignored. The horizontal wander + rotation + scale provide sufficient organic movement.
 - Easing: `type: "tween", ease: "easeInOut"` chosen for predictable looping behavior (spring is also viable with `repeat: Infinity` + `repeatType: "mirror"` in framer-motion v12, but tween gives more precise timing control for ambient loops)
 
 ## Prismatic Ribbons (L3)
