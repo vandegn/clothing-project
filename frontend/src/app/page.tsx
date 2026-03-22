@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <>
       <BackgroundAnimation />
-      <div className="min-h-screen bg-[var(--color-cream)] dark:bg-[#0F0E0D] relative overflow-hidden noise-overlay">
+      <div className="min-h-screen relative overflow-hidden noise-overlay">
         <main className="relative z-10 container mx-auto px-6 pt-24 pb-16 max-w-6xl">
         {/* Header / Hero */}
         <header className="text-center mb-16 animate-on-load animate-fade-up">
@@ -45,7 +45,7 @@ export default function Home() {
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-[var(--color-stone)] max-w-xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-[var(--color-charcoal)]/70 dark:text-[var(--color-cream)]/70 max-w-xl mx-auto leading-relaxed">
             Unlock the palette that was made for you. Upload a selfie and let our AI reveal your most flattering colors.
           </p>
         </header>

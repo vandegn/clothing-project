@@ -35,13 +35,13 @@ export const BLOB_CONFIGS: BlobConfig[] = [
   {
     id: "caustic-l0",
     gradient:
-      "radial-gradient(circle, var(--color-terracotta-light) 0%, var(--color-cream) 70%, transparent 100%)",
-    position: { top: "-10%", right: "-5%" },
+      "radial-gradient(circle, var(--color-terracotta-light) 0%, var(--color-terracotta-light) 30%, transparent 70%)",
+    position: { top: "-5%", right: "0%" },
     size: { width: "700px", height: "700px" },
     mobileSize: { width: "400px", height: "400px" },
     borderRadius: "30% 70% 60% 40% / 50% 30% 70% 50%",
-    blur: "100px",
-    opacity: 0.15,
+    blur: "60px",
+    opacity: 0.6,
     parallaxSpeed: 0.1,
     drift: {
       rotate: [0, 3, -2, 0],
@@ -53,13 +53,13 @@ export const BLOB_CONFIGS: BlobConfig[] = [
   {
     id: "caustic-l1",
     gradient:
-      "radial-gradient(circle, var(--color-sage) 0%, var(--color-blush) 60%, transparent 100%)",
-    position: { top: "30%", left: "-10%" },
+      "radial-gradient(circle, var(--color-sage) 0%, var(--color-blush) 40%, transparent 70%)",
+    position: { top: "30%", left: "-5%" },
     size: { width: "600px", height: "600px" },
     mobileSize: { width: "350px", height: "350px" },
     borderRadius: "60% 40% 30% 70% / 40% 60% 50% 50%",
-    blur: "80px",
-    opacity: 0.12,
+    blur: "60px",
+    opacity: 0.5,
     parallaxSpeed: 0.25,
     drift: {
       rotate: [0, -2, 3, 0],
@@ -71,13 +71,13 @@ export const BLOB_CONFIGS: BlobConfig[] = [
   {
     id: "caustic-l2",
     gradient:
-      "radial-gradient(circle, var(--color-terracotta) 0%, transparent 70%)",
-    position: { top: "60%", right: "-8%" },
+      "radial-gradient(circle, var(--color-terracotta) 0%, var(--color-blush) 35%, transparent 70%)",
+    position: { top: "55%", right: "0%" },
     size: { width: "500px", height: "500px" },
     mobileSize: { width: "300px", height: "300px" },
     borderRadius: "40% 60% 50% 50% / 60% 40% 70% 30%",
-    blur: "60px",
-    opacity: 0.1,
+    blur: "50px",
+    opacity: 0.45,
     parallaxSpeed: 0.4,
     drift: {
       rotate: [0, 2, -3, 0],
@@ -98,7 +98,7 @@ export const RIBBON_CONFIGS: RibbonConfig[] = [
     rotation: 18,
     position: { top: "25%", left: "-5%" },
     blur: "20px",
-    opacity: 0.08,
+    opacity: 0.15,
     parallaxSpeed: 0.55,
     lateralOffset: 100,
   },
@@ -111,7 +111,7 @@ export const RIBBON_CONFIGS: RibbonConfig[] = [
     rotation: -15,
     position: { top: "55%", left: "10%" },
     blur: "20px",
-    opacity: 0.06,
+    opacity: 0.12,
     parallaxSpeed: 0.65,
     lateralOffset: -80,
   },

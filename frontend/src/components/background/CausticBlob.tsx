@@ -19,13 +19,14 @@ function CausticBlobInner({ scrollY, docHeight, config }: CausticBlobProps) {
 
   return (
     <motion.div
-      className={`w-[${config.mobileSize.width}] h-[${config.mobileSize.height}] md:w-[${config.size.width}] md:h-[${config.size.height}]`}
       style={{
         position: "fixed",
         top: config.position.top,
         left: config.position.left,
         right: config.position.right,
         bottom: config.position.bottom,
+        width: config.size.width,
+        height: config.size.height,
         background: config.gradient,
         borderRadius: config.borderRadius,
         filter: `blur(${config.blur})`,
