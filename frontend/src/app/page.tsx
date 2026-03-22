@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploader from "@/components/ImageUploader";
 import BeforeAfterSection from "@/components/BeforeAfterSection";
+import BackgroundAnimation from "@/components/BackgroundAnimation";
 import { Gender } from "@/lib/types";
 
 export default function Home() {
@@ -22,17 +23,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-cream)] dark:bg-[#0F0E0D] relative overflow-hidden noise-overlay">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[var(--color-terracotta-light)]/20 via-[var(--color-blush)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-gradient" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[var(--color-sage)]/15 via-[var(--color-stone-light)]/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
-
-      {/* Floating color orbs */}
-      <div className="absolute top-40 left-[15%] w-3 h-3 rounded-full bg-[var(--color-terracotta)] animate-float opacity-60" />
-      <div className="absolute top-60 right-[20%] w-2 h-2 rounded-full bg-[var(--color-sage)] animate-float delay-300 opacity-50" />
-      <div className="absolute top-80 left-[25%] w-4 h-4 rounded-full bg-[var(--color-blush)] animate-float delay-500 opacity-40" />
-
-      <main className="relative z-10 container mx-auto px-6 pt-24 pb-16 max-w-6xl">
+    <>
+      <BackgroundAnimation />
+      <div className="min-h-screen bg-[var(--color-cream)] dark:bg-[#0F0E0D] relative overflow-hidden noise-overlay">
+        <main className="relative z-10 container mx-auto px-6 pt-24 pb-16 max-w-6xl">
         {/* Header / Hero */}
         <header className="text-center mb-16 animate-on-load animate-fade-up">
           {/* Eyebrow */}
@@ -259,7 +253,8 @@ export default function Home() {
             <span>No data stored</span>
           </div>
         </footer>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }
