@@ -324,14 +324,14 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
             ref={trayRef}
             className="fixed right-0 top-1/2 flex items-center justify-center rounded-l-2xl"
             style={{ zIndex: 40, translateY: "-50%" }}
-            initial={{ width: 0, height: 500, opacity: 0 }}
+            initial={{ width: 0, height: 650, opacity: 0 }}
             animate={{
               width: isDragging ? (isOverTray ? 130 : 90) : 56,
-              height: isOverTray ? 540 : 500,
+              height: isOverTray ? 690 : 650,
               opacity: isDragging ? 1 : 0.6,
             }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 320, damping: 28 }}
+            transition={{ type: "spring", stiffness: 250, damping: 8 }}
           >
             {/* Glassmorphism surface with liquid glass refraction */}
             <motion.div
@@ -350,6 +350,32 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
                   "inset 1px 0 0 rgba(255,255,255,0.08), -6px 0 24px rgba(0,0,0,0.06)",
               }}
             />
+
+            {/* Shine sweep */}
+            <motion.div
+              className="absolute inset-0 rounded-l-2xl overflow-hidden pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <motion.div
+                className="absolute"
+                style={{
+                  width: "200%",
+                  height: "60px",
+                  background: "linear-gradient(180deg, transparent, rgba(255,255,255,0.4), transparent)",
+                  left: "-50%",
+                  transform: "rotate(35deg)",
+                }}
+                initial={{ top: "-80px" }}
+                animate={{ top: "calc(100% + 80px)" }}
+                transition={{
+                  duration: 0.9,
+                  delay: 0.15,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              />
+            </motion.div>
 
             {/* Tray content */}
             <div className="relative flex flex-col items-center gap-2.5">
