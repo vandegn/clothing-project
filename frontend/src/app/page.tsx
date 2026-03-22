@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImageUploader from "@/components/ImageUploader";
+import BeforeAfterSection from "@/components/BeforeAfterSection";
 import { Gender } from "@/lib/types";
 
 export default function Home() {
@@ -244,6 +245,9 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Before & After Showcase */}
+        <BeforeAfterSection />
 
         {/* Footer */}
         <footer className="mt-32 text-center animate-on-load animate-fade-up delay-800">
