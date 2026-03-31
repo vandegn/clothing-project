@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase'
 import { useState } from 'react'
-import Link from 'next/link'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -28,24 +27,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-cream)] dark:bg-[#0F0E0D] relative overflow-hidden noise-overlay">
-      {/* Header */}
-      <header className="relative z-20 glass border-b border-[var(--color-stone-light)]/20">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--color-terracotta)] to-[var(--color-terracotta-dark)] flex items-center justify-center shadow-lg shadow-[var(--color-terracotta)]/20 group-hover:shadow-xl group-hover:shadow-[var(--color-terracotta)]/30 transition-all duration-300">
-              <span className="text-white font-display text-lg font-medium">C</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-display text-xl text-[var(--color-charcoal)] dark:text-[var(--color-cream)]">
-                TrueColor
-              </h1>
-              <p className="text-xs text-[var(--color-stone)]">Color Analysis</p>
-            </div>
-          </Link>
-        </div>
-      </header>
-
       {/* Decorative background elements */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[var(--color-terracotta-light)]/20 via-[var(--color-blush)]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-gradient" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[var(--color-sage)]/15 via-[var(--color-stone-light)]/10 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
@@ -56,7 +37,7 @@ export default function LoginPage() {
       <div className="absolute bottom-32 left-[30%] w-4 h-4 rounded-full bg-[var(--color-blush)] animate-float delay-500 opacity-40" />
 
       {/* Main content - centered */}
-      <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-73px)] p-6">
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
         <div className="w-full max-w-md">
           {/* Login card */}
           <div className="animate-fade-up bg-white/70 dark:bg-[var(--color-charcoal-soft)]/50 backdrop-blur-xl rounded-3xl p-10 border border-[var(--color-stone-light)]/20 shadow-2xl shadow-[var(--color-stone)]/10">

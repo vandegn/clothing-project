@@ -166,7 +166,7 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
           </div>
 
           {/* Category toggle */}
-          <div className="flex items-center gap-1 p-1 rounded-full bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal)]">
+          <div className="self-start sm:self-auto inline-flex items-center gap-1 p-1 rounded-full bg-[var(--color-cream-dark)] dark:bg-[var(--color-charcoal)]">
             {(["tops", "bottoms"] as const).map((category) => (
               <button
                 key={category}
@@ -324,14 +324,14 @@ export default function ClothingRecommendations({ palette, gender }: ClothingRec
             ref={trayRef}
             className="fixed right-0 top-1/2 flex items-center justify-center rounded-l-2xl"
             style={{ zIndex: 40, translateY: "-50%" }}
-            initial={{ width: 0, height: 650, opacity: 0 }}
+            initial={{ width: 0, height: "60dvh", opacity: 0 }}
             animate={{
-              width: isDragging ? (isOverTray ? 130 : 90) : 56,
-              height: isOverTray ? 690 : 650,
+              width: isDragging ? (isOverTray ? 90 : 64) : 44,
+              height: isOverTray ? "65dvh" : "60dvh",
               opacity: isDragging ? 1 : 0.6,
             }}
             exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 250, damping: 8 }}
+            transition={{ type: "spring", stiffness: 250, damping: 22 }}
           >
             {/* Glassmorphism surface with liquid glass refraction */}
             <motion.div

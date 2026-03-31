@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -11,15 +12,32 @@ const routes = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const navRef = useRef<HTMLDivElement>(null);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
 
-  const activeIndex = routes.findIndex((r) =>
-    r.href === '/' ? pathname === '/' : pathname.startsWith(r.href)
-  );
+  const activeIndex = routes.findIndex((r) => {
+    if (r.href === '/') return pathname === '/';
+    if (r.href === '/tryon' && pathname === '/login') return true;
+    return pathname.startsWith(r.href);
+  });
+
+  useEffect(() => {
+    if (navRef.current && activeIndex >= 0) {
+      const links = navRef.current.querySelectorAll('a');
+      const activeLink = links[activeIndex];
+      if (activeLink) {
+        setIndicator({
+          left: activeLink.offsetLeft,
+          width: activeLink.offsetWidth,
+        });
+      }
+    }
+  }, [activeIndex]);
 
   return (
     <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50">
       <div
-        className="flex items-center gap-1.5 p-1.5 rounded-full bg-white dark:bg-[#1a1918] border border-[var(--color-stone-light)]/20"
+        className="flex items-center gap-1 sm:gap-1.5 p-1.5 rounded-full bg-white dark:bg-[#1a1918] border border-[var(--color-stone-light)]/20"
         style={{
           boxShadow:
             'inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.08)',
@@ -36,16 +54,16 @@ export default function Navbar() {
         </Link>
 
         {/* Nav segments */}
-        <div className="relative grid grid-cols-3">
+        <div ref={navRef} className="relative flex">
           {/* Sliding indicator */}
-          {activeIndex >= 0 && (
+          {activeIndex >= 0 && indicator.width > 0 && (
             <div
               className="absolute top-0 bottom-0 rounded-full bg-[var(--color-terracotta)]"
               style={{
-                width: `${100 / routes.length}%`,
-                transform: `translateX(${activeIndex * 100}%)`,
+                left: indicator.left,
+                width: indicator.width,
                 transition:
-                  'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+                  'left 0.3s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               }}
             />
           )}
@@ -54,13 +72,15 @@ export default function Navbar() {
             const isActive =
               route.href === '/'
                 ? pathname === '/'
-                : pathname.startsWith(route.href);
+                : route.href === '/tryon' && pathname === '/login'
+                  ? true
+                  : pathname.startsWith(route.href);
 
             return (
               <Link
                 key={route.href}
                 href={route.href}
-                className={`relative z-10 px-5 py-2 text-sm font-medium text-center rounded-full transition-colors duration-300 active:scale-[0.98] ${
+                className={`relative z-10 px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-medium text-center whitespace-nowrap rounded-full transition-colors duration-300 active:scale-[0.98] ${
                   isActive
                     ? 'text-white'
                     : 'text-[var(--color-stone)] hover:text-[var(--color-charcoal)] dark:hover:text-[var(--color-cream)]'
