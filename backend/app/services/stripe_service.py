@@ -53,6 +53,6 @@ class StripeService:
             event = stripe.Webhook.construct_event(
                 payload, sig_header, self.webhook_secret
             )
-            return event
+            return event.to_dict()
         except Exception:
             return None
