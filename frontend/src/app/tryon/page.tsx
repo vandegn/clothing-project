@@ -11,7 +11,7 @@ export default async function TryOnPage({ searchParams }: TryOnPageProps) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/login?next=/tryon')
   }
 
   const params = await searchParams
